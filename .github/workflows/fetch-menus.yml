@@ -1,0 +1,65 @@
+name: Fetch Menus
+
+on:
+  schedule:
+    # Run daily at 6:00 AM Eastern (11:00 UTC)
+    - cron: "0 11 * * *"
+  workflow_dispatch:
+    inputs:
+      year:
+        description: "Single year (YYYY) — leave blank for 25-month rolling window"
+        required: false
+      month:
+        description: "Single month (1-12) — leave blank for 25-month rolling window"
+        required: false
+      back:
+        description: "Months to look back (default 12)"
+        required: false
+        default: "1"
+      ahead:
+        description: "Months to look ahead (default 12)"
+        required: false
+        default: "1"
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch menus
+        run: |
+          cd scripts
+          YEAR="${{ github.event.inputs.year }}"
+          MONTH="${{ github.event.inputs.month }}"
+          BACK="${{ github.event.inputs.back || '12' }}"
+          AHEAD="${{ github.event.inputs.ahead || '12' }}"
+
+          if [ -n "$YEAR" ] && [ -n "$MONTH" ]; then
+            echo "Single-month mode: $YEAR-$MONTH"
+            python fetch_menus.py --year "$YEAR" --month "$MONTH"
+          else
+            echo "Rolling window mode: $BACK months back, $AHEAD months ahead"
+            python fetch_menus.py --back "$BACK" --ahead "$AHEAD"
+          fi
+
+      - name: Commit updated data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet || git commit -m "chore: update menu data $(date +%Y-%m-%d)"
+          git push
