@@ -57,7 +57,7 @@ jobs:
           import sys, os
           sys.path.insert(0, ".")
           from generate_pdf import generate_all
-          generate_all(int(os.environ["YEAR"]), int(os.environ["MONTH"]))
+          python generate_pdf.py
           PYEOF
         env:
           YEAR:  ${{ steps.date.outputs.year }}

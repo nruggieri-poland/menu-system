@@ -279,7 +279,10 @@ def generate_all(year: int, month: int):
 
 
 if __name__ == "__main__":
-    year  = int(input("Year (YYYY): "))
-    month = int(input("Month (1-12): "))
-    generate_all(year, month)
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--year",  type=int, default=datetime.now().year)
+    parser.add_argument("--month", type=int, default=datetime.now().month)
+    args = parser.parse_args()
+    generate_all(args.year, args.month)
     print("\n✅ PDFs generated.")

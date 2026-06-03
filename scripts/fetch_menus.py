@@ -176,9 +176,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Fetch Nutrislice menu data")
     parser.add_argument("--year",  type=int, help="Fetch a single year (requires --month)")
     parser.add_argument("--month", type=int, help="Fetch a single month 1-12 (requires --year)")
-    parser.add_argument("--back",  type=int, default=12,
+    parser.add_argument("--back",  type=int, default=1,
                         help="Months to look back from today (default: 12)")
-    parser.add_argument("--ahead", type=int, default=12,
+    parser.add_argument("--ahead", type=int, default=1,
                         help="Months to look ahead from today (default: 12)")
     args = parser.parse_args()
 

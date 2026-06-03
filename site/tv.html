@@ -488,7 +488,7 @@ function buildTicker(items) {
 
 async function loadData(school, type, year, month) {
   const filename = `${year}-${String(month).padStart(2,'0')}-${type}-${school}.json`;
-  const url = `../../data/${filename}`;
+  const url = `https://raw.githubusercontent.com/nruggieri-poland/menu-system/main/data/${filename}`;
   const resp = await fetch(url);
   if (!resp.ok) throw new Error(`HTTP ${resp.status} for ${url}`);
   return resp.json();
