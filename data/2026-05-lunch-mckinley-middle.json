@@ -1,0 +1,209 @@
+{
+  "school": "mckinley-middle",
+  "display_name": "McKinley Middle School",
+  "menutype": "lunch",
+  "year": 2026,
+  "month": 5,
+  "generated_at": "2026-06-04T11:02:47.078919Z",
+  "days": [
+    {
+      "date": "2026-05-01",
+      "items": [
+        "Cheese Pizza",
+        "Golden Corn",
+        "Fresh Baby Carrots",
+        "Warm Apple Crisp",
+        "Crispy Fish Sandwich"
+      ]
+    },
+    {
+      "date": "2026-05-04",
+      "items": [
+        "Crispy Chicken Nuggets w/ Buttered Noodles",
+        "Crispy Tater Tots",
+        "Cucumbers",
+        "Diced Peaches",
+        "Popcorn Chicken"
+      ]
+    },
+    {
+      "date": "2026-05-05",
+      "items": [
+        "Beef & Cheese Nachos",
+        "Homestyle Refried Beans",
+        "Fresh Baby Carrots",
+        "Warm Peach Crisp",
+        "Cheeseburger on a Bun"
+      ]
+    },
+    {
+      "date": "2026-05-06",
+      "items": [
+        "Chicken Meatballs & Penne Pasta w/Fresh Bread",
+        "Fresh Broccoli Florets",
+        "Birthday Cake Applesauce",
+        "Breaded Chicken Sandwich"
+      ]
+    },
+    {
+      "date": "2026-05-07",
+      "items": [
+        "Chicken w/ Gravy and Biscuit Potato Bowl",
+        "Seasoned Steamed Green Beans",
+        "Tropical Pineapple Tidbits",
+        "Chicken Nuggets"
+      ]
+    },
+    {
+      "date": "2026-05-08",
+      "items": [
+        "Cheese Pizza",
+        "Grape Tomatoes",
+        "Broccoli",
+        "Citrusy Mandarin Oranges",
+        "Grilled Cheese"
+      ]
+    },
+    {
+      "date": "2026-05-11",
+      "items": [
+        "Popcorn Smackers",
+        "Fresh Baby Carrots",
+        "Green Beans",
+        "Refreshing Mixed Fruit",
+        "Grilled Cheese"
+      ]
+    },
+    {
+      "date": "2026-05-12",
+      "items": [
+        "Cheesy Chicken Nachos",
+        "Black Beans",
+        "Fresh Broccoli Florets",
+        "Fresh Apple Slices",
+        "Corn Dog Nuggets"
+      ]
+    },
+    {
+      "date": "2026-05-13",
+      "items": [
+        "Hamburger on Bun",
+        "Fresh Baby Carrots",
+        "Seasoned Steamed Peas",
+        "Tropical Pineapple Tidbits",
+        "Fiestada Pizza"
+      ]
+    },
+    {
+      "date": "2026-05-14",
+      "items": [
+        "Corn Dog Nuggets",
+        "Fresh Cucumber Slices",
+        "Baked French Fries",
+        "Diced Carrots",
+        "Applesauce",
+        "Chicken Nuggets"
+      ]
+    },
+    {
+      "date": "2026-05-15",
+      "items": [
+        "Cheese Pizza",
+        "Fresh Red and Green Peppers",
+        "Broccoli",
+        "Diced Peaches",
+        "Grilled Cheese"
+      ]
+    },
+    {
+      "date": "2026-05-18",
+      "items": [
+        "Bosco Sticks w/Dipping Sauce",
+        "Fresh Baby Carrots",
+        "Seasoned Steamed Peas",
+        "Strawberry Applesauce",
+        "Corn Dog Nuggets"
+      ]
+    },
+    {
+      "date": "2026-05-19",
+      "items": [
+        "Cheese Quesadilla w/ Salsa",
+        "Golden Corn",
+        "Fresh Red and Green Peppers",
+        "Candied Apple Slices",
+        "Chicken Nuggets"
+      ]
+    },
+    {
+      "date": "2026-05-20",
+      "items": [
+        "Cheeseburger on a Bun",
+        "BBQ Bacon Baked Beans",
+        "Cucumbers",
+        "Warm Peach Crisp",
+        "Fiestada Pizza"
+      ]
+    },
+    {
+      "date": "2026-05-21",
+      "items": [
+        "French Toast Sticks w/Sausage",
+        "Crispy Tater Tots",
+        "Fresh Baby Carrots",
+        "Refreshing Mixed Fruit",
+        "Crispy Spicy Chicken Patty Sandwich"
+      ]
+    },
+    {
+      "date": "2026-05-22",
+      "items": [
+        "Cheese Pizza",
+        "Grape Tomatoes",
+        "Broccoli",
+        "Citrusy Mandarin Oranges",
+        "Grilled Cheese"
+      ]
+    },
+    {
+      "date": "2026-05-26",
+      "items": [
+        "Walking Taco with Beef, Cheese, Nacho Doritos & Fresh Bread",
+        "Homestyle Refried Beans",
+        "Grape Tomatoes",
+        "Citrusy Mandarin Oranges",
+        "Grilled Cheese"
+      ]
+    },
+    {
+      "date": "2026-05-27",
+      "items": [
+        "Freshly Baked Italian Dunkers",
+        "Green Beans",
+        "Fresh Broccoli Florets",
+        "Tropical Pineapple Tidbits",
+        "Cheeseburger on a Bun"
+      ]
+    },
+    {
+      "date": "2026-05-28",
+      "items": [
+        "Popcorn Chicken Bowl w/ Fresh Bread",
+        "Golden Corn",
+        "Fresh Cucumber Slices",
+        "Diced Pears",
+        "Crispy Spicy Chicken Patty Sandwich"
+      ]
+    },
+    {
+      "date": "2026-05-29",
+      "items": [
+        "Cheese Pizza",
+        "Fresh Red and Green Peppers",
+        "Broccoli",
+        "Warm Apple Crisp",
+        "Grilled Cheese"
+      ]
+    }
+  ]
+}

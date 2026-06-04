@@ -1,0 +1,170 @@
+{
+  "school": "mckinley-middle",
+  "display_name": "McKinley Middle School",
+  "menutype": "breakfast",
+  "year": 2026,
+  "month": 5,
+  "generated_at": "2026-06-04T11:02:40.699808Z",
+  "days": [
+    {
+      "date": "2026-05-01",
+      "items": [
+        "Strawberry Cream Cheese Mini Bagels",
+        "Cherry Craisins",
+        "Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-05-04",
+      "items": [
+        "Mini Chocolate Chip French Toast",
+        "Golden Delicious Apple",
+        "Fruit Punch Juice"
+      ]
+    },
+    {
+      "date": "2026-05-05",
+      "items": [
+        "Confetti Pancakes",
+        "Raisins",
+        "Apple Juice"
+      ]
+    },
+    {
+      "date": "2026-05-06",
+      "items": [
+        "Cinnamon Roll",
+        "Strawberry Banana Applesauce",
+        "Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-05-07",
+      "items": [
+        "Goody Ring",
+        "Fresh Petite Banana",
+        "Fruit Punch Juice"
+      ]
+    },
+    {
+      "date": "2026-05-08",
+      "items": [
+        "Iced Donut w/Sprinkles",
+        "Fresh Citrus Orange",
+        "Ice Cold Blue Raspberry Juice"
+      ]
+    },
+    {
+      "date": "2026-05-11",
+      "items": [
+        "Egg & Cheese Biscuit",
+        "Fresh Citrus Orange",
+        "Apple Juice"
+      ]
+    },
+    {
+      "date": "2026-05-12",
+      "items": [
+        "Strawberry Cream Cheese Mini Bagels",
+        "Golden Delicious Apple",
+        "Ice Cold Blue Raspberry Juice"
+      ]
+    },
+    {
+      "date": "2026-05-13",
+      "items": [
+        "Mini Chocolate Chip French Toast",
+        "Fresh Petite Banana",
+        "Fruit Punch Juice"
+      ]
+    },
+    {
+      "date": "2026-05-14",
+      "items": [
+        "Dutch Waffle",
+        "Ice Cold Blue Raspberry Juice",
+        "Cinnamon Applesauce"
+      ]
+    },
+    {
+      "date": "2026-05-15",
+      "items": [
+        "Mini Maple Pancakes",
+        "Strawberry Banana Applesauce",
+        "Cherry Craisins",
+        "Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-05-18",
+      "items": [
+        "Egg, Ham & Cheese Biscuit",
+        "Golden Delicious Apple",
+        "Fruit Punch Juice"
+      ]
+    },
+    {
+      "date": "2026-05-19",
+      "items": [
+        "Confetti Pancakes",
+        "^08310df4-3d48-43e2-8921-9519ce30bd27",
+        "Raspberry Lemonade Craisins"
+      ]
+    },
+    {
+      "date": "2026-05-20",
+      "items": [
+        "Blueberry Snack'n Waffle",
+        "Strawberry Banana Applesauce",
+        "Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-05-21",
+      "items": [
+        "Mini Cinnamon Waffles",
+        "Fresh Petite Banana",
+        "Fruit Punch Juice"
+      ]
+    },
+    {
+      "date": "2026-05-22",
+      "items": [
+        "Iced Donut w/Sprinkles",
+        "Fresh Citrus Orange",
+        "Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-05-26",
+      "items": [
+        "Pancakes",
+        "Golden Delicious Apple"
+      ]
+    },
+    {
+      "date": "2026-05-27",
+      "items": [
+        "Confetti Pancakes",
+        "Fresh Petite Banana",
+        "Apple Juice"
+      ]
+    },
+    {
+      "date": "2026-05-28",
+      "items": [
+        "Strawberry Cream Cheese Mini Bagels",
+        "Cinnamon Applesauce",
+        "Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-05-29",
+      "items": [
+        "Iced Donut w/Sprinkles",
+        "Cherry Craisins",
+        "Orange Juice"
+      ]
+    }
+  ]
+}
