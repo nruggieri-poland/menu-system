@@ -1,0 +1,30 @@
+{
+  "school": "mckinley-middle",
+  "display_name": "McKinley Middle School",
+  "menutype": "lunch",
+  "year": 2026,
+  "month": 3,
+  "generated_at": "2026-06-07T12:30:18.852889Z",
+  "days": [
+    {
+      "date": "2026-03-30",
+      "items": [
+        "Chicken Parmesan Sandwich",
+        "Fresh Baby Carrots",
+        "Green Beans",
+        "Refreshing Mixed Fruit",
+        "Grilled Cheese"
+      ]
+    },
+    {
+      "date": "2026-03-31",
+      "items": [
+        "Cheesy Chicken Nachos",
+        "Black Beans",
+        "Fresh Broccoli Florets",
+        "Fresh Apple Slices",
+        "Corn Dog Nuggets"
+      ]
+    }
+  ]
+}

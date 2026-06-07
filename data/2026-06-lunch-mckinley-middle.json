@@ -1,0 +1,30 @@
+{
+  "school": "mckinley-middle",
+  "display_name": "McKinley Middle School",
+  "menutype": "lunch",
+  "year": 2026,
+  "month": 6,
+  "generated_at": "2026-06-07T12:30:35.721071Z",
+  "days": [
+    {
+      "date": "2026-06-01",
+      "items": [
+        "Chicken Nuggets with Fresh Bread",
+        "Cucumbers",
+        "Green Beans",
+        "Diced Peaches",
+        "Popcorn Chicken"
+      ]
+    },
+    {
+      "date": "2026-06-02",
+      "items": [
+        "Cheese Pizza",
+        "Seasoned Steamed Golden Corn",
+        "Grape Tomatoes",
+        "Tropical Pineapple Tidbits",
+        "Breaded Chicken Sandwich"
+      ]
+    }
+  ]
+}

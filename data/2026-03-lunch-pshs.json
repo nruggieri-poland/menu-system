@@ -1,0 +1,32 @@
+{
+  "school": "pshs",
+  "display_name": "Poland Seminary High School",
+  "menutype": "lunch",
+  "year": 2026,
+  "month": 3,
+  "generated_at": "2026-06-07T12:25:40.805386Z",
+  "days": [
+    {
+      "date": "2026-03-30",
+      "items": [
+        "Baked Penne w/ Garlic Toast",
+        "Fresh Baby Carrots",
+        "Green Beans",
+        "Fresh Petite Banana",
+        "Refreshing Mixed Fruit",
+        "Hot Dog on a Bun"
+      ]
+    },
+    {
+      "date": "2026-03-31",
+      "items": [
+        "Pork Carnitas Quesadilla",
+        "Homestyle Refried Beans",
+        "Black & White Bean Salad",
+        "Citrusy Mandarin Oranges",
+        "Red Delicious Apple",
+        "Chicken Nuggets"
+      ]
+    }
+  ]
+}

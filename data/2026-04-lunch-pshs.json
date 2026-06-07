@@ -1,0 +1,187 @@
+{
+  "school": "pshs",
+  "display_name": "Poland Seminary High School",
+  "menutype": "lunch",
+  "year": 2026,
+  "month": 4,
+  "generated_at": "2026-06-07T12:25:46.171073Z",
+  "days": [
+    {
+      "date": "2026-04-01",
+      "items": [
+        "Bosco Sticks w/Dipping Sauce",
+        "Fresh Cucumber Slices",
+        "Seasoned Steamed Peas",
+        "Golden Delicious Apple",
+        "Diced Pears",
+        "Crispy Fish Sandwich"
+      ]
+    },
+    {
+      "date": "2026-04-02",
+      "items": [
+        "Roasted Turkey & Gravy w/ Fresh Bread",
+        "Creamy Mashed Potatoes",
+        "Broccoli",
+        "Fresh Petite Banana",
+        "Tropical Pineapple Tidbits",
+        "Corn Dog Nuggets"
+      ]
+    },
+    {
+      "date": "2026-04-13",
+      "items": [
+        "Sweet & Sour Chicken",
+        "Vegetable Lo Mein Noodles",
+        "Cucumbers",
+        "Broccoli",
+        "Fresh Citrus Orange",
+        "Cinnamon Applesauce",
+        "Fiestada Pizza"
+      ]
+    },
+    {
+      "date": "2026-04-14",
+      "items": [
+        "Baja Fish Tacos w/ Chipotle Ranch Sauce",
+        "Black Beans",
+        "Fresh Celery Sticks",
+        "Citrusy Mandarin Oranges",
+        "Pineapple Salsa",
+        "Chicken Nuggets"
+      ]
+    },
+    {
+      "date": "2026-04-15",
+      "items": [
+        "Freshly Baked Italian Dunkers",
+        "Green Beans",
+        "Grape Tomatoes",
+        "Sweet Red Grapes",
+        "Tropical Pineapple Tidbits",
+        "Corn Dog"
+      ]
+    },
+    {
+      "date": "2026-04-16",
+      "items": [
+        "French Toast Sticks w/ 2 Sausage Patties",
+        "Crispy Tater Tots",
+        "Fresh Baby Carrots",
+        "Red Delicious Apple",
+        "Diced Pears",
+        "Popcorn Chicken"
+      ]
+    },
+    {
+      "date": "2026-04-17",
+      "items": [
+        "Chicken Bacon Ranch Pizza",
+        "Fresh Red and Green Peppers",
+        "Broccoli",
+        "Warm Apple Crisp",
+        "Blueberries w/Whip Topping",
+        "Grilled Cheese"
+      ]
+    },
+    {
+      "date": "2026-04-20",
+      "items": [
+        "Cheese Tortellini with Marinara Sauce and Garlic Toast",
+        "Fresh Cucumber Slices",
+        "Seasoned Steamed Peas",
+        "Red Delicious Apple",
+        "Cinnamon Applesauce",
+        "Popcorn Chicken"
+      ]
+    },
+    {
+      "date": "2026-04-21",
+      "items": [
+        "Beef & Cheese Soft Taco",
+        "Golden Corn",
+        "Fresh Celery Sticks",
+        "Fresh Petite Banana",
+        "Tropical Pineapple Tidbits",
+        "Grilled Cheese"
+      ]
+    },
+    {
+      "date": "2026-04-22",
+      "items": [
+        "Dutch Waffle & Chicken",
+        "Green Beans",
+        "Fresh Broccoli Florets",
+        "Fresh Citrus Orange",
+        "Warm Peach Crisp",
+        "Hot Dog on a Bun"
+      ]
+    },
+    {
+      "date": "2026-04-23",
+      "items": [
+        "BBQ Pulled Pork Sandwich",
+        "BBQ Bacon Baked Beans",
+        "Fresh Red and Green Peppers",
+        "Blueberries w/Whip Topping",
+        "Refreshing Mixed Fruit",
+        "Chicken Nuggets"
+      ]
+    },
+    {
+      "date": "2026-04-24",
+      "items": [
+        "Chicken BBQ Pizza",
+        "Grape Tomatoes",
+        "Broccoli",
+        "Diced Pears",
+        "Fresh Citrus Orange",
+        "Corn Dog Nuggets"
+      ]
+    },
+    {
+      "date": "2026-04-27",
+      "items": [
+        "Bosco Sticks w/Dipping Sauce",
+        "Fresh Cucumber Slices",
+        "Broccoli",
+        "Fresh Petite Banana",
+        "Cinnamon Applesauce",
+        "Fiestada Pizza"
+      ]
+    },
+    {
+      "date": "2026-04-28",
+      "items": [
+        "Beef & Cheese Nachos",
+        "Grape Tomatoes",
+        "Refried Beans",
+        "Citrusy Mandarin Oranges",
+        "Red Delicious Apple",
+        "Grilled Cheese"
+      ]
+    },
+    {
+      "date": "2026-04-29",
+      "items": [
+        "Macaroni & Cheese w/ Garlic Toast",
+        "Fresh Baby Carrots",
+        "Seasoned Steamed Peas",
+        "Sweet Red Grapes",
+        "Diced Peaches",
+        "Popcorn Chicken"
+      ]
+    },
+    {
+      "date": "2026-04-30",
+      "items": [
+        "Chicken Pot Pie w/Fresh Bread",
+        "Golden Corn",
+        "Fresh Cucumber Slices",
+        "Candied Apple Slices",
+        "Fresh Citrus Orange",
+        "Chicken Nuggets"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "school": "mckinley-middle",
+  "display_name": "McKinley Middle School",
+  "menutype": "breakfast",
+  "year": 2026,
+  "month": 4,
+  "generated_at": "2026-06-07T12:28:05.267363Z",
+  "days": [
+    {
+      "date": "2026-04-01",
+      "items": [
+        "Mini Chocolate Chip French Toast",
+        "Fresh Petite Banana",
+        "Fruit Punch Juice"
+      ]
+    },
+    {
+      "date": "2026-04-02",
+      "items": [
+        "Dutch Waffle",
+        "Ice Cold Blue Raspberry Juice",
+        "Cinnamon Applesauce"
+      ]
+    },
+    {
+      "date": "2026-04-13",
+      "items": [
+        "Blueberry Snack'n Waffle",
+        "Fresh Citrus Orange",
+        "Apple Juice"
+      ]
+    },
+    {
+      "date": "2026-04-14",
+      "items": [
+        "Pancakes",
+        "Golden Delicious Apple"
+      ]
+    },
+    {
+      "date": "2026-04-15",
+      "items": [
+        "Confetti Pancakes",
+        "Fresh Petite Banana",
+        "Apple Juice"
+      ]
+    },
+    {
+      "date": "2026-04-16",
+      "items": [
+        "Strawberry Cream Cheese Mini Bagels",
+        "Cinnamon Applesauce",
+        "Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-04-17",
+      "items": [
+        "Iced Donut w/Sprinkles",
+        "Cherry Craisins",
+        "Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-04-20",
+      "items": [
+        "Chocolate Chip Oatmeal Bar",
+        "Golden Delicious Apple"
+      ]
+    },
+    {
+      "date": "2026-04-21",
+      "items": [
+        "Mini Cinnamon Waffles",
+        "Fresh Apple Slices",
+        "Apple Juice"
+      ]
+    },
+    {
+      "date": "2026-04-22",
+      "items": [
+        "Mini Chocolate Chip French Toast",
+        "Strawberry Banana Applesauce",
+        "Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-04-23",
+      "items": [
+        "Egg, Bacon, & Cheese Biscuit",
+        "Fresh Petite Banana",
+        "Fruit Punch Juice"
+      ]
+    },
+    {
+      "date": "2026-04-24",
+      "items": [
+        "Iced Donut w/Sprinkles",
+        "Fresh Citrus Orange"
+      ]
+    },
+    {
+      "date": "2026-04-27",
+      "items": [
+        "Mini Chocolate Chip French Toast",
+        "Fresh Citrus Orange",
+        "Apple Juice"
+      ]
+    },
+    {
+      "date": "2026-04-28",
+      "items": [
+        "Blueberry Snack'n Waffle",
+        "Golden Delicious Apple"
+      ]
+    },
+    {
+      "date": "2026-04-29",
+      "items": [
+        "Mini Cinnamon Waffles",
+        "Fresh Petite Banana",
+        "Fruit Punch Juice"
+      ]
+    },
+    {
+      "date": "2026-04-30",
+      "items": [
+        "Mini Maple Pancakes",
+        "Cinnamon Applesauce",
+        "Orange Juice"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "school": "pshs",
+  "display_name": "Poland Seminary High School",
+  "menutype": "breakfast",
+  "year": 2026,
+  "month": 6,
+  "generated_at": "2026-06-07T12:23:38.556571Z",
+  "days": [
+    {
+      "date": "2026-06-01",
+      "items": [
+        "Egg & Cheese Biscuit",
+        "Golden Delicious Apple",
+        "Fruit Punch Juice"
+      ]
+    },
+    {
+      "date": "2026-06-02",
+      "items": [
+        "Strawberry Cream Cheese Mini Bagels",
+        "Raspberry Lemonade Craisins",
+        "Apple Juice"
+      ]
+    }
+  ]
+}

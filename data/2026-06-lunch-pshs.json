@@ -1,0 +1,32 @@
+{
+  "school": "pshs",
+  "display_name": "Poland Seminary High School",
+  "menutype": "lunch",
+  "year": 2026,
+  "month": 6,
+  "generated_at": "2026-06-07T12:25:57.704336Z",
+  "days": [
+    {
+      "date": "2026-06-01",
+      "items": [
+        "Pepperoni Pizza",
+        "Fresh Cucumber Slices",
+        "Seasoned Steamed Peas",
+        "Red Delicious Apple",
+        "Cinnamon Applesauce",
+        "Tangy BBQ Chicken Sandwich"
+      ]
+    },
+    {
+      "date": "2026-06-02",
+      "items": [
+        "Hamburger on Bun",
+        "Golden Corn",
+        "Fresh Celery Sticks",
+        "Fresh Petite Banana",
+        "Tropical Pineapple Tidbits",
+        "Grilled Cheese"
+      ]
+    }
+  ]
+}
