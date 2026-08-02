@@ -4,29 +4,6 @@
   "menutype": "lunch",
   "year": 2026,
   "month": 3,
-  "generated_at": "2026-07-26T12:07:47.344151Z",
-  "days": [
-    {
-      "date": "2026-03-30",
-      "items": [
-        "Baked Penne w/ Garlic Toast",
-        "Fresh Baby Carrots",
-        "Green Beans",
-        "Fresh Petite Banana",
-        "Refreshing Mixed Fruit",
-        "Hot Dog on a Bun"
-      ]
-    },
-    {
-      "date": "2026-03-31",
-      "items": [
-        "Pork Carnitas Quesadilla",
-        "Homestyle Refried Beans",
-        "Black & White Bean Salad",
-        "Citrusy Mandarin Oranges",
-        "Red Delicious Apple",
-        "Chicken Nuggets"
-      ]
-    }
-  ]
+  "generated_at": "2026-08-02T12:07:08.841277Z",
+  "days": []
 }

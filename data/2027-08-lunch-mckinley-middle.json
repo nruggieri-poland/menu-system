@@ -1,9 +1,9 @@
 {
   "school": "mckinley-middle",
   "display_name": "McKinley Middle School",
-  "menutype": "breakfast",
+  "menutype": "lunch",
   "year": 2027,
-  "month": 5,
-  "generated_at": "2026-08-02T12:11:33.856087Z",
+  "month": 8,
+  "generated_at": "2026-08-02T12:14:44.454311Z",
   "days": []
 }

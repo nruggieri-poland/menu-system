@@ -4,29 +4,6 @@
   "menutype": "lunch",
   "year": 2026,
   "month": 6,
-  "generated_at": "2026-07-26T12:08:10.225880Z",
-  "days": [
-    {
-      "date": "2026-06-01",
-      "items": [
-        "Pepperoni Pizza",
-        "Fresh Cucumber Slices",
-        "Seasoned Steamed Peas",
-        "Red Delicious Apple",
-        "Cinnamon Applesauce",
-        "Tangy BBQ Chicken Sandwich"
-      ]
-    },
-    {
-      "date": "2026-06-02",
-      "items": [
-        "Hamburger on Bun",
-        "Golden Corn",
-        "Fresh Celery Sticks",
-        "Fresh Petite Banana",
-        "Tropical Pineapple Tidbits",
-        "Grilled Cheese"
-      ]
-    }
-  ]
+  "generated_at": "2026-08-02T12:07:29.215856Z",
+  "days": []
 }
