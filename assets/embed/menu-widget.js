@@ -413,10 +413,6 @@
     bootFromDataAttr();
   }
 
-  // Exposed for fully self-contained embeds that hardcode their own config
-  // and mount their own container (see build_finalsite_embeds.py).
-  window.PSMenuWidget = { Widget: Widget };
-
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
   } else {

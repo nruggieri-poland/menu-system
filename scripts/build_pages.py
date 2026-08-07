@@ -45,6 +45,7 @@ MONTH_NAMES = [
 
 REPO_SLUG = "nruggieri-poland/menus"
 PAGES_BASE = "https://nruggieri-poland.github.io/menus"
+REPO_BLOB_BASE = f"https://github.com/{REPO_SLUG}/blob/master"
 
 
 # ── Data helpers ──────────────────────────────────────────────────────────
@@ -496,7 +497,7 @@ def build_embed_guide():
         embed_url = f"{PAGES_BASE}/{school}/{menutype}/embed.html"
 
         widget_snippet = f'<script defer src="{widget_url}?school={school}&menutype={menutype}"></script>'
-        finalsite_file_url = f"{PAGES_BASE}/embed/finalsite/{school}-{menutype}.html"
+        widget_file_url = f"{REPO_BLOB_BASE}/widgets/{school}-{menutype}.html"
 
         cal_iframe_snippet = (
             f'<iframe src="{cal_url}" title="{esc(display_name)} {esc(menutype)} calendar" '
@@ -511,27 +512,27 @@ def build_embed_guide():
     <section aria-labelledby="h-{esc(school)}-{esc(menutype)}">
       <h2 id="h-{esc(school)}-{esc(menutype)}">{esc(display_name)} &mdash; {esc(menutype.capitalize())}</h2>
 
-      <h3>Recommended for Finalsite: one script tag, no HTML markup</h3>
-      <p>Paste just this single line into the Custom HTML component &mdash; no
-      <code>&lt;div&gt;</code>, no <code>data-*</code> attributes on anything visible in the page.
-      Config lives in the script's own <code>src</code>, which a CMS sanitizer can't strip
-      without breaking the script load itself (unlike a separate <code>data-*</code> attribute or
-      container div, which some Finalsite "Custom HTML" sanitizers silently strip on save &mdash;
-      that's what broke the earlier div-based version). The script creates its own container
-      element right where it sits.</p>
-      <pre><code>{esc(widget_snippet)}</code></pre>
-      <p>Add <code>&amp;view=week</code> to the URL to start in list view instead of month view.
-      Fetches this feed's JSON straight from the repo on load, so it always shows live data &mdash;
-      no rebuild/re-paste needed. Includes working prev/next navigation and a List View / Month
-      View toggle, built on semantic HTML (a real <code>&lt;table&gt;</code> for the grid, proper
+      <h3>Recommended for Finalsite: paste the widget file</h3>
+      <p>Open <a href="{esc(widget_file_url)}">{esc(widget_file_url)}</a>, click "Copy raw file"
+      (or select all and copy), and paste the whole thing into this page's Custom HTML component
+      &mdash; no other markup needed, the script creates its own container. Every class/id/data
+      attribute in the file is namespaced to this specific feed
+      (<code>.psmenu-{esc(school)}-{esc(menutype)}-*</code>), so it's safe to paste alongside any
+      of the other three widget files on the same page with zero risk of collision. The menu data
+      itself is never hardcoded &mdash; the only network request it makes at runtime is fetching
+      the current JSON from the repo, so it always shows live data with no rebuild/re-paste
+      needed. Built on semantic HTML (a real <code>&lt;table&gt;</code> for the grid, proper
       headings, focus-visible states, 44px touch targets) rather than a calendar library's
       non-semantic div grid.</p>
 
-      <h3>Alternative: fully self-contained file</h3>
-      <p>Same zero-markup approach, but with everything (CSS, JS, config) inlined into one block
-      instead of loading an external script &mdash; use this if the CMS won't load external scripts
-      at all. Open <a href="{esc(finalsite_file_url)}">{esc(finalsite_file_url)}</a>, select all,
-      copy, and paste the whole thing into the Custom HTML component.</p>
+      <h3>Lighter alternative: one script tag, shared engine</h3>
+      <p>Functionally identical, but loads the engine from one shared external file instead of
+      inlining it &mdash; less to paste per page, at the cost of not being self-contained. Config
+      lives in the script's own <code>src</code>, which a CMS sanitizer can't strip without
+      breaking the script load itself (unlike a separate <code>data-*</code> attribute or
+      container div, which some Finalsite "Custom HTML" sanitizers silently strip on save).</p>
+      <pre><code>{esc(widget_snippet)}</code></pre>
+      <p>Add <code>&amp;view=week</code> to the URL to start in list view instead of month view.</p>
 
       <h3>Alternative: iframe</h3>
       <p>Simpler, but some Finalsite CSP configurations block framed content outright (that's
@@ -559,11 +560,13 @@ def build_embed_guide():
   <p>Copy-paste snippets for the school website / Finalsite</p>
 </header>
 <main id="main">
-  <p>The <strong>JS widget</strong> is the recommended approach: it fetches the menu JSON
-  straight from this repo client-side and renders it in the page, so it always shows live data
-  without needing to frame external content &mdash; which avoids the CSP <code>frame-src</code>
-  blocks some Finalsite configurations apply to iframes. The monthly calendar is the default
-  view everywhere; every page links to the alternate list view too.</p>
+  <p>The <strong>widget files</strong> below (also in the repo's <code>widgets/</code> folder) are
+  the recommended approach: paste one whole file into a Custom HTML component and it fetches the
+  menu JSON straight from this repo client-side and renders it in the page &mdash; no HTML markup
+  beyond the paste, no framing (which avoids the CSP <code>frame-src</code> blocks some Finalsite
+  configurations apply to iframes), and everything namespaced so multiple feeds coexist safely on
+  one page. The monthly calendar is the default view everywhere; every page links to the alternate
+  list view too.</p>
   {''.join(sections)}
 </main>
 <footer class="site-footer">Internal reference page &mdash; not linked from the public menu pages.</footer>

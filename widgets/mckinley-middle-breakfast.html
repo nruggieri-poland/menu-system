@@ -1,0 +1,352 @@
+<!-- Poland Schools menu widget — McKinley Middle School Breakfast
+     Paste this entire block into the Finalsite Custom HTML component for
+     this page. No external script/library dependencies, no HTML markup
+     needed (the script creates its own container). All CSS/JS in this file
+     is namespaced to this specific feed, so it's safe to paste alongside
+     any of the other three widget files on the same page. The MENU DATA is
+     never hardcoded — the only network request this makes is to fetch the
+     current menu JSON from the repo, so it always shows live data.
+     Source: scripts/build_finalsite_embeds.py (do not hand-edit; regenerate
+     instead if assets/embed/menu-widget.js changes). -->
+<script>
+(function () {
+  'use strict';
+
+  var REPO_DATA_BASE = 'https://raw.githubusercontent.com/nruggieri-poland/menus/refs/heads/master/data/';
+
+  var DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  var MONTH_NAMES = ['', 'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  var SCHOOL_NAMES = {
+    'pshs': 'Poland Seminary High School',
+    'mckinley-middle': 'McKinley Middle School'
+  };
+
+  // ── Helpers ────────────────────────────────────────────────────────────
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function dateKey(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+
+  function sameDay(a, b) { return dateKey(a) === dateKey(b); }
+
+  function addDays(d, n) { var r = new Date(d); r.setDate(r.getDate() + n); return r; }
+
+  function getMonday(d) {
+    var day = new Date(d);
+    var diff = (day.getDay() + 6) % 7;
+    day.setDate(day.getDate() - diff);
+    day.setHours(0, 0, 0, 0);
+    return day;
+  }
+
+  function fmtDate(d) {
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function fmtDateFull(d) {
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }
+
+  function fmtDateLong(d) {
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  }
+
+  function daysInMonth(year, month) { return new Date(year, month, 0).getDate(); }
+
+  // ── Data fetch: one rollup file per feed, shared across all widget
+  // instances on the page and cached for the page's lifetime ──────────────
+
+  var rollupCache = {};
+
+  function fetchRollup(school, menutype) {
+    var key = school + '/' + menutype;
+    if (rollupCache[key]) return rollupCache[key];
+    var filename = menutype + '-' + school + '.json';
+    rollupCache[key] = fetch(REPO_DATA_BASE + filename)
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (data) {
+        var itemMap = {};
+        (data.days || []).forEach(function (d) { itemMap[d.date] = d.items; });
+        return itemMap;
+      })
+      .catch(function () { return null; });
+    return rollupCache[key];
+  }
+
+  // ── Stylesheet (injected once, scoped under .psmenu-mckinley-middle-breakfast) ─────────────────────
+
+  var CSS = ''
+    + '.psmenu-mckinley-middle-breakfast{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#1a1a2e;background:#fff;line-height:1.5;}'
+    + '.psmenu-mckinley-middle-breakfast *,.psmenu-mckinley-middle-breakfast *::before,.psmenu-mckinley-middle-breakfast *::after{box-sizing:border-box;}'
+    + '.psmenu-mckinley-middle-breakfast a{color:#0d2870;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.75rem 1rem;padding-bottom:.5rem;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-eyebrow{font-size:.8rem;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin:0 0 .2rem;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-head h2{color:#1a3e9c;font-size:clamp(1.3rem,4vw,1.8rem);margin:0;line-height:1.2;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-nav{display:flex;gap:.5rem;flex-shrink:0;align-items:center;flex-wrap:wrap;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-nav button{background:#2d3748;color:#fff;border:0;border-radius:8px;padding:.55rem .95rem;font-size:.85rem;font-weight:600;cursor:pointer;min-height:44px;min-width:44px;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-nav button:hover{background:#1c2536;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-nav button:disabled{opacity:.4;cursor:default;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-nav button:focus-visible{outline:3px solid #0b57d0;outline-offset:2px;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-print{background:none !important;color:#0d2870 !important;text-decoration:underline;font-weight:400 !important;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-daylist{border:1px solid #d8dee9;border-radius:10px;overflow:hidden;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-day + .psmenu-mckinley-middle-breakfast-day{border-top:1px solid #d8dee9;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-day-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:.35rem .75rem;background:#eef0f2;padding:.7rem 1.25rem;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-day.today .psmenu-mckinley-middle-breakfast-day-head{background:#dce6fb;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-day-head h3{font-size:1.05rem;color:#1a3e9c;margin:0;display:inline-flex;align-items:center;gap:.5rem;font-weight:700;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-day-head .psmenu-mckinley-middle-breakfast-date{font-weight:700;color:#1a3e9c;font-size:1rem;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-flag{font-size:.65rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#0d2870;background:#cfe0fb;padding:.15rem .5rem;border-radius:999px;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-day-body{padding:1rem 1.25rem 1.25rem;background:#fff;}'
+    + '.psmenu-mckinley-middle-breakfast ul.psmenu-mckinley-middle-breakfast-items{list-style:none;margin:0;padding:0;}'
+    + '.psmenu-mckinley-middle-breakfast ul.psmenu-mckinley-middle-breakfast-items li{padding-left:1.1rem;position:relative;margin-bottom:.4rem;color:#333;}'
+    + '.psmenu-mckinley-middle-breakfast ul.psmenu-mckinley-middle-breakfast-items li:first-child::before{content:"";position:absolute;left:0;top:.55em;width:8px;height:8px;border-radius:50%;background:#1a3e9c;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-toggle{display:flex;justify-content:center;margin-top:1.25rem;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-toggle button{background:#1a3e9c;color:#fff;border:0;padding:.65rem 1.5rem;border-radius:8px;font-weight:600;cursor:pointer;min-height:44px;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-toggle button:hover{background:#0d2870;}'
+    + '.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal{border-collapse:collapse;width:100%;margin-top:.5rem;table-layout:fixed;}'
+    + '.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal caption{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}'
+    + '.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal th,.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal td{border:1px solid #d8dee9;vertical-align:top;padding:.5rem;}'
+    + '.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal thead th{background:#1a3e9c;color:#fff;text-align:center;padding:.6rem;font-size:.9rem;}'
+    + '.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal td{width:20%;}'
+    + '.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal td.psmenu-mckinley-middle-breakfast-empty{background:#f2f4f8;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-daynum{font-weight:700;color:#1a3e9c;display:block;text-align:right;margin-bottom:.3rem;font-size:.85rem;}'
+    + '.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal ul{list-style:none;margin:0;padding:0;font-size:.8rem;}'
+    + '.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal ul li{margin-bottom:.25rem;color:#333;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-status{padding:2rem 1rem;text-align:center;color:#475569;}'
+    + '@media (max-width:700px){'
+    + '.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal thead{position:absolute;left:-9999px;top:-9999px;}'
+    + '.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal,.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal tbody,.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal tr,.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal td{display:block;width:100%;}'
+    + '.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal tr{margin-bottom:1rem;border:1px solid #d8dee9;border-radius:8px;overflow:hidden;}'
+    + '.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal td{border:none;border-bottom:1px solid #d8dee9;}'
+    + '.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal td:last-child{border-bottom:none;}'
+    + '.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal td.psmenu-mckinley-middle-breakfast-empty{display:none;}'
+    + '.psmenu-mckinley-middle-breakfast table.psmenu-mckinley-middle-breakfast-cal td::before{content:attr(data-day);font-weight:700;color:#1a3e9c;display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-daynum{text-align:left;}'
+    + '}'
+    + '@media print{.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-nav,.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-toggle{display:none !important;}}';
+
+  function injectStyleOnce() {
+    if (document.getElementById('psmenu-mckinley-middle-breakfast-style')) return;
+    var style = document.createElement('style');
+    style.id = 'psmenu-mckinley-middle-breakfast-style';
+    style.textContent = CSS;
+    document.head.appendChild(style);
+  }
+
+  // ── Widget ────────────────────────────────────────────────────────────
+
+  function Widget(el, config) {
+    config = config || {};
+    this.el = el;
+    this.school = config.school || el.getAttribute('data-school');
+    this.menutype = config.menutype || el.getAttribute('data-menutype');
+    this.displayName = config.displayName || el.getAttribute('data-display-name')
+      || SCHOOL_NAMES[this.school] || this.school;
+    this.view = (config.view || el.getAttribute('data-view')) === 'week' ? 'week' : 'calendar';
+    var today = new Date();
+    this.year = today.getFullYear();
+    this.month = today.getMonth() + 1;
+    this.monday = getMonday(today);
+  }
+
+  Widget.prototype.init = function () {
+    injectStyleOnce();
+    this.el.classList.add('psmenu-mckinley-middle-breakfast');
+    this.el.setAttribute('aria-live', 'polite');
+    if (!this.school || !this.menutype) {
+      this.el.innerHTML = '<p class="psmenu-mckinley-middle-breakfast-status">Menu embed is missing data-school / data-menutype.</p>';
+      return;
+    }
+    this.render();
+  };
+
+  Widget.prototype.getItemMap = function () {
+    return fetchRollup(this.school, this.menutype);
+  };
+
+  Widget.prototype.render = function () {
+    this.el.innerHTML = '<p class="psmenu-mckinley-middle-breakfast-status">Loading menu&hellip;</p>';
+    if (this.view === 'calendar') this.renderCalendar();
+    else this.renderWeek();
+  };
+
+  // ── Month / calendar view ────────────────────────────────────────────
+
+  Widget.prototype.renderCalendar = function () {
+    var self = this;
+    this.getItemMap().then(function (itemMap) {
+      self.el.innerHTML = self.buildCalendarHTML(itemMap, self.year, self.month);
+      self.bindCalendarNav();
+    });
+  };
+
+  Widget.prototype.buildCalendarHTML = function (itemMap, year, month) {
+    var fetchFailed = itemMap === null;
+    itemMap = itemMap || {};
+
+    var first = new Date(year, month - 1, 1);
+    var numDays = daysInMonth(year, month);
+    var weekStart = getMonday(first);
+
+    var weeks = [];
+    var cur = new Date(weekStart);
+    var lastOfMonth = new Date(year, month - 1, numDays);
+    while (cur <= lastOfMonth) {
+      var week = [];
+      for (var i = 0; i < 5; i++) {
+        var d = addDays(cur, i);
+        week.push(d.getMonth() === month - 1 ? d : null);
+      }
+      weeks.push(week);
+      cur = addDays(cur, 7);
+    }
+
+    var headerCells = DAYS.map(function (d) { return '<th scope="col">' + d + '</th>'; }).join('');
+
+    var rowsHtml = weeks.map(function (week) {
+      var cells = week.map(function (d, i) {
+        var dayName = DAYS[i];
+        if (!d) return '<td class="psmenu-mckinley-middle-breakfast-empty" data-day="' + esc(dayName) + '"></td>';
+        var key = dateKey(d);
+        var items = itemMap[key] || [];
+        var itemsHtml = items.length
+          ? '<ul class="psmenu-mckinley-middle-breakfast-cal-items">' + items.map(function (it) { return '<li>' + esc(it) + '</li>'; }).join('') + '</ul>'
+          : '';
+        return '<td data-day="' + esc(dayName) + '">'
+          + '<span class="psmenu-mckinley-middle-breakfast-sr-only">' + esc(fmtDateLong(d)) + ': </span>'
+          + '<span class="psmenu-mckinley-middle-breakfast-daynum" aria-hidden="true">' + d.getDate() + '</span>'
+          + itemsHtml + '</td>';
+      }).join('');
+      return '<tr>' + cells + '</tr>';
+    }).join('');
+
+    var monthLabel = MONTH_NAMES[month] + ' ' + year;
+    var noDataNote = fetchFailed
+      ? '<p class="psmenu-mckinley-middle-breakfast-status">Sorry, the menu couldn&rsquo;t be loaded right now. Please try again later.</p>'
+      : '';
+
+    return ''
+      + '<div class="psmenu-mckinley-middle-breakfast-head">'
+      + '<div><p class="psmenu-mckinley-middle-breakfast-eyebrow">' + esc(this.displayName) + ' &middot; ' + esc(cap(this.menutype)) + '</p>'
+      + '<h2>' + esc(monthLabel) + '</h2></div>'
+      + '<nav class="psmenu-mckinley-middle-breakfast-nav" aria-label="Month navigation">'
+      + '<button type="button" data-nav="today">Today</button>'
+      + '<button type="button" data-nav="prev" aria-label="Previous month">&larr;</button>'
+      + '<button type="button" data-nav="next" aria-label="Next month">&rarr;</button>'
+      + '<button type="button" data-nav="print" class="psmenu-mckinley-middle-breakfast-print">Print</button>'
+      + '</nav></div>'
+      + noDataNote
+      + '<table class="psmenu-mckinley-middle-breakfast-cal"><caption>' + esc(cap(this.menutype)) + ' menu &mdash; ' + esc(this.displayName) + ' &mdash; ' + esc(monthLabel) + '</caption>'
+      + '<thead><tr>' + headerCells + '</tr></thead><tbody>' + rowsHtml + '</tbody></table>'
+      + '<div class="psmenu-mckinley-middle-breakfast-toggle"><button type="button" data-nav="list">List View</button></div>';
+  };
+
+  Widget.prototype.bindCalendarNav = function () {
+    var self = this;
+    bindNav(this.el, {
+      prev: function () { self.shiftMonth(-1); },
+      next: function () { self.shiftMonth(1); },
+      today: function () { var t = new Date(); self.year = t.getFullYear(); self.month = t.getMonth() + 1; self.render(); },
+      print: function () { window.print(); },
+      list: function () { self.view = 'week'; self.render(); }
+    });
+  };
+
+  Widget.prototype.shiftMonth = function (delta) {
+    var m = this.month + delta, y = this.year;
+    if (m < 1) { m = 12; y -= 1; }
+    if (m > 12) { m = 1; y += 1; }
+    this.year = y; this.month = m;
+    this.render();
+  };
+
+  // ── Week / list view ──────────────────────────────────────────────────
+
+  Widget.prototype.renderWeek = function () {
+    var self = this;
+    this.getItemMap().then(function (itemMap) {
+      self.el.innerHTML = self.buildWeekHTML(itemMap, self.monday);
+      self.bindWeekNav();
+    });
+  };
+
+  Widget.prototype.buildWeekHTML = function (itemMap, monday) {
+    var fetchFailed = itemMap === null;
+    itemMap = itemMap || {};
+    var today = new Date();
+    var friday = addDays(monday, 4);
+
+    var rows = DAYS.map(function (dayName, i) {
+      var d = addDays(monday, i);
+      var key = dateKey(d);
+      var items = itemMap[key] || [];
+      var isToday = sameDay(d, today);
+      var flag = isToday ? '<span class="psmenu-mckinley-middle-breakfast-flag">Today</span>' : '';
+      var itemsHtml = items.length
+        ? '<ul class="psmenu-mckinley-middle-breakfast-items">' + items.map(function (it) { return '<li>' + esc(it) + '</li>'; }).join('') + '</ul>'
+        : '';
+      return '<div class="psmenu-mckinley-middle-breakfast-day' + (isToday ? ' today' : '') + '">'
+        + '<div class="psmenu-mckinley-middle-breakfast-day-head"><h3>' + esc(dayName) + flag + '</h3>'
+        + '<span class="psmenu-mckinley-middle-breakfast-date">' + esc(fmtDateFull(d)) + '</span></div>'
+        + '<div class="psmenu-mckinley-middle-breakfast-day-body">' + itemsHtml + '</div></div>';
+    }).join('');
+
+    var noDataNote = fetchFailed
+      ? '<p class="psmenu-mckinley-middle-breakfast-status">Sorry, the menu couldn&rsquo;t be loaded right now. Please try again later.</p>'
+      : '';
+
+    return ''
+      + '<div class="psmenu-mckinley-middle-breakfast-head">'
+      + '<div><p class="psmenu-mckinley-middle-breakfast-eyebrow">' + esc(this.displayName) + ' &middot; ' + esc(cap(this.menutype)) + '</p>'
+      + '<h2>' + esc(fmtDate(monday)) + ' &ndash; ' + esc(fmtDate(friday)) + ', ' + monday.getFullYear() + '</h2></div>'
+      + '<nav class="psmenu-mckinley-middle-breakfast-nav" aria-label="Week navigation">'
+      + '<button type="button" data-nav="today">Today</button>'
+      + '<button type="button" data-nav="prev" aria-label="Previous week">&larr;</button>'
+      + '<button type="button" data-nav="next" aria-label="Next week">&rarr;</button>'
+      + '<button type="button" data-nav="print" class="psmenu-mckinley-middle-breakfast-print">Print</button>'
+      + '</nav></div>'
+      + noDataNote
+      + '<div class="psmenu-mckinley-middle-breakfast-daylist">' + rows + '</div>'
+      + '<div class="psmenu-mckinley-middle-breakfast-toggle"><button type="button" data-nav="month">Month View</button></div>';
+  };
+
+  Widget.prototype.bindWeekNav = function () {
+    var self = this;
+    bindNav(this.el, {
+      prev: function () { self.monday = addDays(self.monday, -7); self.render(); },
+      next: function () { self.monday = addDays(self.monday, 7); self.render(); },
+      today: function () { self.monday = getMonday(new Date()); self.render(); },
+      print: function () { window.print(); },
+      month: function () { self.view = 'calendar'; self.render(); }
+    });
+  };
+
+  // ── Shared nav wiring ─────────────────────────────────────────────────
+
+  function bindNav(root, handlers) {
+    Object.keys(handlers).forEach(function (key) {
+      var btn = root.querySelector('[data-nav="' + key + '"]');
+      if (btn) btn.addEventListener('click', handlers[key]);
+    });
+  }
+
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+
+  var __script = document.currentScript;
+  var __container = document.createElement('div');
+  __script.parentNode.insertBefore(__container, __script.nextSibling);
+  new Widget(__container, {
+    school: "mckinley-middle",
+    menutype: "breakfast",
+    displayName: "McKinley Middle School"
+  }).init();
+})();
+</script>

@@ -85,16 +85,18 @@ jobs:
           python build_pages.py
           python build_finalsite_embeds.py
 
-      - name: Commit updated menu data
-        # Only data/ is committed — 4 small rollup files, cheap to keep in git
-        # history and gives simple, reliable persistence between runs. site/
-        # is pure build output (fully regenerated every run from data/ plus
-        # the scripts) and is deployed straight to Pages below — it's never
-        # committed, so it never bloats git history.
+      - name: Commit updated menu data and widget files
+        # data/ (4 small rollup files) and widgets/ (4 paste-into-Finalsite
+        # files, only change if assets/embed/menu-widget.js changes) are
+        # committed — cheap to keep in git history, and widgets/ needs to be
+        # committed since it's meant to be browsed/copied from GitHub
+        # directly. site/ is pure build output (fully regenerated every run)
+        # and is deployed straight to Pages below — it's never committed, so
+        # it never bloats git history.
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/
+          git add data/ widgets/
           git diff --cached --quiet || git commit -m "chore: update menu data $(date +%Y-%m-%d)"
           git push
 
