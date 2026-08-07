@@ -503,10 +503,14 @@ def generate_all(months: list[tuple[int, int]]):
 def prune_stale_pdfs(keep_months: list[tuple[int, int]]):
     """Removes PDFs (and their preview cards) for any month other than the
     ones just generated — the site should only ever offer the current month
-    and next month, never accumulate old ones."""
+    and next month, never accumulate old ones. Leaves the current-/next-
+    stable-name aliases alone (they don't start with a year and are
+    overwritten fresh on every run anyway)."""
     keep_stems = {f"{y}-{m:02d}" for y, m in keep_months}
     removed = 0
     for pdf_path in PDF_DIR.glob("*.pdf"):
+        if pdf_path.stem.startswith(("current-", "next-")):
+            continue
         if pdf_path.stem[:7] not in keep_stems:
             pdf_path.unlink()
             thumb = PDF_DIR / "thumbnails" / f"{pdf_path.stem}.png"
@@ -515,6 +519,28 @@ def prune_stale_pdfs(keep_months: list[tuple[int, int]]):
             removed += 1
     if removed:
         print(f"\n  Pruned {removed} stale PDF(s)/preview card(s) outside {sorted(keep_stems)}")
+
+
+def write_stable_aliases(current_ym: tuple[int, int], next_ym: tuple[int, int]):
+    """Copies each dated PDF to a permanent current-/next- filename too, so
+    a URL pasted into Finalsite never needs to change month to month."""
+    import csv
+    import shutil
+
+    csv_path = Path(__file__).parent / "menu-list.csv"
+    with open(csv_path, newline="") as f:
+        rows = list(csv.DictReader(f))
+
+    for label, (y, m) in (("current", current_ym), ("next", next_ym)):
+        for row in rows:
+            school = row["school"].strip()
+            menutype = row["menutype"].strip()
+            src = PDF_DIR / f"{y}-{m:02d}-{menutype}-{school}.pdf"
+            if not src.exists():
+                continue
+            dest = PDF_DIR / f"{label}-{menutype}-{school}.pdf"
+            shutil.copy2(src, dest)
+    print(f"  Wrote current-/next- stable-name PDF aliases")
 
 
 if __name__ == "__main__":
@@ -536,5 +562,6 @@ if __name__ == "__main__":
         months = [this_month, next_month]
         generate_all(months)
         prune_stale_pdfs(months)
+        write_stable_aliases(this_month, next_month)
 
     print("\n✅ PDFs generated.")

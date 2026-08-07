@@ -501,21 +501,38 @@ def build_embed_guide():
 
         pdf_months = available_pdf_months_for(school, menutype)
         if pdf_months:
-            lines = []
-            for py, pm in pdf_months:
-                stem = f"{py}-{pm:02d}-{menutype}-{school}"
+            stable_lines = []
+            for label in ("current", "next"):
+                stem = f"{label}-{menutype}-{school}"
                 thumb_url = f"{PAGES_BASE}/pdfs/thumbnails/{stem}.png"
                 pdf_url = f"{PAGES_BASE}/pdfs/{stem}.pdf"
-                lines.append(f"{MONTH_NAMES[pm]} {py} image: {thumb_url}\n{MONTH_NAMES[pm]} {py} links to: {pdf_url}")
+                stable_lines.append(f"{label.capitalize()} month image: {thumb_url}\n{label.capitalize()} month links to: {pdf_url}")
+
+            dated_lines = []
+            for py, pm in pdf_months:
+                stem = f"{py}-{pm:02d}-{menutype}-{school}"
+                dated_lines.append(
+                    f"{MONTH_NAMES[pm]} {py} image: {PAGES_BASE}/pdfs/thumbnails/{stem}.png\n"
+                    f"{MONTH_NAMES[pm]} {py} links to: {PAGES_BASE}/pdfs/{stem}.pdf"
+                )
+
             pdf_photo_note = (
-                "There are always exactly two PDFs live for each feed — current month and next month "
-                "— meant to sit side by side on the site as two \"photo\" components, each linking to "
-                "its own PDF. Each preview image is a plain branded card with the month/year prominent "
-                "(not a screenshot of the calendar grid, which is illegible at thumbnail size). Both "
-                "URLs below update automatically as the month rolls over — old months are removed "
-                "automatically, so there's never a third one to clean up."
+                "Use the permanent current-/next- URLs below for the two \"photo\" components on the "
+                "school site — paste them once and never touch them again. Both always point at "
+                "whichever PDF/image is actually current; the underlying files are regenerated (and "
+                "the URLs' content swapped) automatically as the month rolls over, so there's nothing "
+                "to update on the Finalsite side, ever. Each preview image is a branded card with the "
+                "month/year prominent plus an actual preview of the calendar page, not a screenshot of "
+                "the calendar grid alone (illegible at thumbnail size) or a graphic with no preview at "
+                "all — both of those were tried first."
             )
-            pdf_photo_snippet = f'<pre><code>{esc(chr(10).join(lines))}</code></pre>'
+            pdf_photo_snippet = (
+                f'<pre><code>{esc(chr(10).join(stable_lines))}</code></pre>'
+                f'<p style="margin:.75rem 0 .25rem;font-size:.85rem;color:var(--muted)">'
+                f'Dated URLs (for reference/direct linking to a specific month, not for pasting into '
+                f'Finalsite):</p>'
+                f'<pre><code>{esc(chr(10).join(dated_lines))}</code></pre>'
+            )
         else:
             pdf_photo_note = "No PDF has been generated for this feed yet — run generate_pdf.py."
             pdf_photo_snippet = ""
@@ -620,11 +637,13 @@ MEAL_ICONS = {"breakfast": "🥞", "lunch": "🍕"}
 def available_pdf_months_for(school: str, menutype: str) -> list[tuple[int, int]]:
     """(year, month) pairs with a generated PDF on disk for this feed — in
     the normal daily build this is exactly [current month, next month],
-    since generate_pdf.py prunes anything else."""
+    since generate_pdf.py prunes anything else. Excludes the current-/next-
+    stable-name aliases, which aren't dated files."""
     pdf_dir = SITE / "pdfs"
     return sorted({
         (int(p.stem.split("-")[0]), int(p.stem.split("-")[1]))
         for p in pdf_dir.glob(f"*-{menutype}-{school}.pdf")
+        if not p.stem.startswith(("current-", "next-"))
     })
 
 

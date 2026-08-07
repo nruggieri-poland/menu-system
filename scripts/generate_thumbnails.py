@@ -12,6 +12,8 @@ Output: site/pdfs/thumbnails/{same-stem-as-pdf}.png
 """
 
 import csv
+import shutil
+from datetime import date
 from pathlib import Path
 
 from pdf2image import convert_from_path
@@ -103,7 +105,9 @@ def load_menu_list() -> list[dict]:
 
 def generate_all():
     THUMB_DIR.mkdir(parents=True, exist_ok=True)
-    pdfs = sorted(PDF_DIR.glob("*.pdf"))
+    # Only the dated PDFs (YYYY-MM-...) — current-/next- are aliases of
+    # these, written separately below, not something to build a card from.
+    pdfs = sorted(p for p in PDF_DIR.glob("*.pdf") if not p.stem.startswith(("current-", "next-")))
     if not pdfs:
         print("  No PDFs found — run generate_pdf.py first.")
         return
@@ -123,6 +127,30 @@ def generate_all():
     print(f"  Generated {count} preview card(s) → site/pdfs/thumbnails/")
 
 
+def write_stable_aliases():
+    """Copies each month's dated preview card to a permanent current-/next-
+    filename too, matching generate_pdf.py's PDF aliases, so a URL pasted
+    into Finalsite never needs to change month to month."""
+    today = date.today()
+    this_month = (today.year, today.month)
+    next_month = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
+
+    with open(Path(__file__).parent / "menu-list.csv", newline="") as f:
+        rows = list(csv.DictReader(f))
+
+    for label, (y, m) in (("current", this_month), ("next", next_month)):
+        for row in rows:
+            school = row["school"].strip()
+            menutype = row["menutype"].strip()
+            src = THUMB_DIR / f"{y}-{m:02d}-{menutype}-{school}.png"
+            if not src.exists():
+                continue
+            dest = THUMB_DIR / f"{label}-{menutype}-{school}.png"
+            shutil.copy2(src, dest)
+    print("  Wrote current-/next- stable-name preview card aliases")
+
+
 if __name__ == "__main__":
     generate_all()
+    write_stable_aliases()
     print("✅ Preview cards generated.")
