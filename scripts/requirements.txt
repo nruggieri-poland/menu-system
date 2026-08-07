@@ -1,0 +1,3 @@
+requests
+reportlab
+pdf2image

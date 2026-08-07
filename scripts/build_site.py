@@ -18,7 +18,9 @@ SITE   = ROOT / "site"
 
 def copy_data():
     dest = SITE / "data"
-    dest.mkdir(exist_ok=True)
+    if dest.exists():
+        shutil.rmtree(dest)  # clear stale files (e.g. old per-month rollups) before copying
+    dest.mkdir(parents=True)
     count = 0
     for src in DATA.glob("*.json"):
         shutil.copy2(src, dest / src.name)

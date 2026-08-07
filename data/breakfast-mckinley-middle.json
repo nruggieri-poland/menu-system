@@ -1,0 +1,192 @@
+{
+  "school": "mckinley-middle",
+  "display_name": "McKinley Middle School",
+  "menutype": "breakfast",
+  "generated_at": "2026-08-07T00:00:00Z",
+  "days": [
+    {
+      "date": "2026-08-25",
+      "items": [
+        "Confetti Pancakes",
+        "Golden Delicious Apple",
+        "Sunrise Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-08-26",
+      "items": [
+        "Cinnamon Roll",
+        "Apple Juice",
+        "Fresh Petite Banana"
+      ]
+    },
+    {
+      "date": "2026-08-27",
+      "items": [
+        "Goody Ring",
+        "Apple Juice",
+        "Cinnamon Applesauce"
+      ]
+    },
+    {
+      "date": "2026-08-28",
+      "items": [
+        "Iced Donut w/Sprinkles",
+        "Sunrise Orange Juice",
+        "Raspberry Lemonade Craisins"
+      ]
+    },
+    {
+      "date": "2026-08-31",
+      "items": [
+        "Egg & Cheese Biscuit",
+        "Sunrise Orange Juice",
+        "Golden Delicious Apple"
+      ]
+    },
+    {
+      "date": "2026-09-01",
+      "items": [
+        "Strawberry Cream Cheese Mini Bagels",
+        "Apple Juice",
+        "Fruit Punch Craisins"
+      ]
+    },
+    {
+      "date": "2026-09-08",
+      "items": [
+        "Confetti Pancakes",
+        "Fresh Petite Banana",
+        "Sunrise Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-09-09",
+      "items": [
+        "Blueberry Snack'n Waffle",
+        "Fruit Punch Craisins",
+        "Apple Juice"
+      ]
+    },
+    {
+      "date": "2026-09-10",
+      "items": [
+        "Mini Chocolate Chip French Toast",
+        "Sunrise Orange Juice",
+        "Cinnamon Applesauce"
+      ]
+    },
+    {
+      "date": "2026-09-11",
+      "items": [
+        "Iced Donut w/Sprinkles",
+        "Apple Juice",
+        "Golden Delicious Apple"
+      ]
+    },
+    {
+      "date": "2026-09-14",
+      "items": [
+        "Cinnamon Roll",
+        "Golden Delicious Apple",
+        "Sunrise Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-09-15",
+      "items": [
+        "Mini Cinnamon Waffles",
+        "Cinnamon Applesauce",
+        "Apple Juice"
+      ]
+    },
+    {
+      "date": "2026-09-16",
+      "items": [
+        "Strawberry Cream Cheese Mini Bagels",
+        "Apple Juice",
+        "Fresh Petite Banana"
+      ]
+    },
+    {
+      "date": "2026-09-17",
+      "items": [
+        "Strawberry Pancake Puffs",
+        "Raspberry Lemonade Craisins",
+        "Sunrise Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-09-18",
+      "items": [
+        "Golden Delicious Apple",
+        "Pear, Banana, & Spinach Smoothie w/ Cereal & Crackers",
+        "Sunrise Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-09-21",
+      "items": [
+        "Mini Maple Waffles",
+        "Apple Juice",
+        "Fresh Petite Banana"
+      ]
+    },
+    {
+      "date": "2026-09-22",
+      "items": [
+        "Blueberry Snack'n Waffle",
+        "Sunrise Orange Juice",
+        "Fresh Petite Banana"
+      ]
+    },
+    {
+      "date": "2026-09-23",
+      "items": [
+        "Cinnamon Roll",
+        "Golden Delicious Apple",
+        "Apple Juice"
+      ]
+    },
+    {
+      "date": "2026-09-24",
+      "items": [
+        "Mini Chocolate Chip French Toast",
+        "Apple Juice",
+        "Fruit Punch Craisins"
+      ]
+    },
+    {
+      "date": "2026-09-25",
+      "items": [
+        "Iced Donut w/Sprinkles",
+        "Cinnamon Applesauce",
+        "Sunrise Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-09-28",
+      "items": [
+        "Strawberry Cream Cheese Mini Bagels",
+        "Fresh Petite Banana",
+        "Sunrise Orange Juice"
+      ]
+    },
+    {
+      "date": "2026-09-29",
+      "items": [
+        "Goody Ring",
+        "Apple Juice",
+        "Raspberry Lemonade Craisins"
+      ]
+    },
+    {
+      "date": "2026-09-30",
+      "items": [
+        "Cinnamon Roll",
+        "Golden Delicious Apple",
+        "Apple Juice"
+      ]
+    }
+  ]
+}
