@@ -96,7 +96,7 @@ def item_map(school: str, menutype: str) -> dict[str, list[str]]:
 
 # How far to generate browsable week/month pages, independent of which of
 # those months actually have published menu data yet (Nutrislice publishes
-# incrementally — most of this range will just show "No menu" until closer
+# incrementally — most of this range will just show blank days until closer
 # to the date, same as the old per-month-file site did).
 SITE_MONTHS_BACK = 12
 SITE_MONTHS_AHEAD = 12
@@ -176,12 +176,11 @@ BASE_CSS = """
 .menu-embed .day-row.today .day-row-head{background:var(--row-bg-today);}
 .menu-embed .day-row-head h2{font-size:1.05rem;color:var(--brand-blue);margin:0;display:inline-flex;align-items:center;gap:.5rem;}
 .menu-embed .day-row-head .date{font-weight:700;color:var(--brand-blue);font-size:1rem;}
-.menu-embed .today-flag{font-size:.65rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#3d2a00;background:var(--gold-bg);padding:.15rem .5rem;border-radius:999px;}
+.menu-embed .today-flag{font-size:.65rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#0d2870;background:#cfe0fb;padding:.15rem .5rem;border-radius:999px;}
 .menu-embed .day-row-body{padding:1rem 1.25rem 1.25rem;background:#fff;}
 .menu-embed ul.items{list-style:none;margin:0;padding:0;}
 .menu-embed ul.items li{padding-left:1.1rem;position:relative;margin-bottom:.4rem;color:#333;}
 .menu-embed ul.items li:first-child::before{content:"";position:absolute;left:0;top:.55em;width:8px;height:8px;border-radius:50%;background:var(--brand-blue);}
-.menu-embed .no-menu{color:var(--muted);font-style:italic;margin:0;}
 
 .menu-embed .view-toggle{display:flex;justify-content:center;margin:1.5rem auto 0;max-width:1100px;}
 .menu-embed .view-toggle a{background:var(--brand-blue);color:#fff;padding:.65rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:600;min-height:44px;display:inline-flex;align-items:center;}
@@ -199,7 +198,6 @@ BASE_CSS = """
 .menu-embed .cal-daynum{font-weight:700;color:var(--brand-blue);display:block;text-align:right;margin-bottom:.3rem;font-size:.85rem;}
 .menu-embed table.cal ul{list-style:none;margin:0;padding:0;font-size:.8rem;}
 .menu-embed table.cal ul li{margin-bottom:.25rem;color:#333;}
-.menu-embed table.cal .no-menu{font-size:.78rem;}
 
 @media (max-width: 700px){
   .menu-embed table.cal thead{position:absolute;left:-9999px;top:-9999px;}
@@ -267,10 +265,7 @@ def render_week_body(school: str, display_name: str, menutype: str, monday: date
         is_today = d == today
         flag = '<span class="today-flag">Today</span>' if is_today else ""
         heading_id = f"day-{i}"
-        if items:
-            items_html = "<ul class=\"items\">" + "".join(f"<li>{esc(it)}</li>" for it in items) + "</ul>"
-        else:
-            items_html = '<p class="no-menu">No menu available</p>'
+        items_html = "<ul class=\"items\">" + "".join(f"<li>{esc(it)}</li>" for it in items) + "</ul>" if items else ""
         rows.append(f"""
       <section class="day-row{' today' if is_today else ''}" aria-labelledby="{heading_id}">
         <div class="day-row-head">
@@ -387,10 +382,7 @@ def render_calendar_body(school: str, display_name: str, menutype: str, year: in
             if day_num is None:
                 cells.append(f'<td class="empty" data-day="{esc(day_name)}"></td>')
                 continue
-            if items:
-                items_html = "<ul>" + "".join(f"<li>{esc(it)}</li>" for it in items) + "</ul>"
-            else:
-                items_html = '<p class="no-menu">No menu</p>'
+            items_html = "<ul>" + "".join(f"<li>{esc(it)}</li>" for it in items) + "</ul>" if items else ""
             d_full = date(year, month, day_num)
             cells.append(
                 f'<td data-day="{esc(day_name)}">'
@@ -503,7 +495,7 @@ def build_embed_guide():
         cal_url = f"{PAGES_BASE}/{school}/{menutype}/calendar/"
         embed_url = f"{PAGES_BASE}/{school}/{menutype}/embed.html"
 
-        widget_snippet = f'<div data-psmenu data-school="{esc(school)}" data-menutype="{esc(menutype)}"></div>'
+        widget_snippet = f'<script defer src="{widget_url}?school={school}&menutype={menutype}"></script>'
         finalsite_file_url = f"{PAGES_BASE}/embed/finalsite/{school}-{menutype}.html"
 
         cal_iframe_snippet = (
@@ -519,22 +511,27 @@ def build_embed_guide():
     <section aria-labelledby="h-{esc(school)}-{esc(menutype)}">
       <h2 id="h-{esc(school)}-{esc(menutype)}">{esc(display_name)} &mdash; {esc(menutype.capitalize())}</h2>
 
-      <h3>Recommended for Finalsite: self-contained paste block</h3>
-      <p>Open <a href="{esc(finalsite_file_url)}">{esc(finalsite_file_url)}</a>, select all, copy,
-      and paste the whole thing into this page's Custom HTML component. It's one complete block
-      &mdash; CSS, markup, and JS all inline, no external script tag, no third-party library CDN,
-      no iframe. The only network request it makes at runtime is fetching this month's JSON
-      straight from the repo, so it always shows live data. Includes working prev/next month
-      navigation and a List View / Month View toggle, built on semantic HTML (a real
-      <code>&lt;table&gt;</code> for the grid, proper headings, focus-visible states, 44px touch
-      targets) rather than a calendar library's non-semantic div grid.</p>
-
-      <h3>Lighter option: div + shared script</h3>
-      <p>If the site can load an external script fine, this is less to paste per page &mdash;
-      functionally identical, just not self-contained:</p>
+      <h3>Recommended for Finalsite: one script tag, no HTML markup</h3>
+      <p>Paste just this single line into the Custom HTML component &mdash; no
+      <code>&lt;div&gt;</code>, no <code>data-*</code> attributes on anything visible in the page.
+      Config lives in the script's own <code>src</code>, which a CMS sanitizer can't strip
+      without breaking the script load itself (unlike a separate <code>data-*</code> attribute or
+      container div, which some Finalsite "Custom HTML" sanitizers silently strip on save &mdash;
+      that's what broke the earlier div-based version). The script creates its own container
+      element right where it sits.</p>
       <pre><code>{esc(widget_snippet)}</code></pre>
-      <pre><code>&lt;script src="{esc(widget_url)}" defer&gt;&lt;/script&gt;</code></pre>
-      <p>Defaults to month view; add <code>data-view="week"</code> to start in list view instead.</p>
+      <p>Add <code>&amp;view=week</code> to the URL to start in list view instead of month view.
+      Fetches this feed's JSON straight from the repo on load, so it always shows live data &mdash;
+      no rebuild/re-paste needed. Includes working prev/next navigation and a List View / Month
+      View toggle, built on semantic HTML (a real <code>&lt;table&gt;</code> for the grid, proper
+      headings, focus-visible states, 44px touch targets) rather than a calendar library's
+      non-semantic div grid.</p>
+
+      <h3>Alternative: fully self-contained file</h3>
+      <p>Same zero-markup approach, but with everything (CSS, JS, config) inlined into one block
+      instead of loading an external script &mdash; use this if the CMS won't load external scripts
+      at all. Open <a href="{esc(finalsite_file_url)}">{esc(finalsite_file_url)}</a>, select all,
+      copy, and paste the whole thing into the Custom HTML component.</p>
 
       <h3>Alternative: iframe</h3>
       <p>Simpler, but some Finalsite CSP configurations block framed content outright (that's

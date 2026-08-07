@@ -1,22 +1,32 @@
 /*
  * menu-widget.js — Poland Schools menu embed
  *
- * Drop this into any page (e.g. a Finalsite "Custom HTML" block):
+ * Drop this into any page (e.g. a Finalsite "Custom HTML" block) — just the
+ * one line, nothing else:
  *
- *   <div data-psmenu data-school="pshs" data-menutype="lunch"></div>
- *   <script src="https://nruggieri-poland.github.io/menus/embed/menu-widget.js" defer></script>
+ *   <script defer src="https://nruggieri-poland.github.io/menus/embed/menu-widget.js?school=pshs&menutype=lunch"></script>
  *
- * Multiple <div data-psmenu ...> blocks on one page share a single script
- * tag. Each feed is fetched as ONE rollup JSON file (data/{menutype}-{school}.json,
- * the whole available history, not split by month) straight from this repo
- * on page load, cached for the life of the page — so it's always current, no
- * iframe involved (works even where a host CSP blocks frame-src), no
- * rebuild/re-paste needed, and month/week navigation after the first load is
- * instant with zero extra network requests.
+ * Config travels in the script's own src query string, not a separate HTML
+ * attribute — many CMS "Custom HTML" sanitizers strip data-* attributes (and
+ * sometimes the container div entirely) on save, but they can't strip a
+ * script's own src without breaking it outright, so this is the one thing
+ * guaranteed to survive. The script creates its own container element right
+ * where it sits; you don't need to add any markup yourself.
  *
- * Optional attributes:
- *   data-view="calendar" | "week"   (default: "calendar")
- *   data-display-name="..."         (overrides the built-in school name lookup)
+ * Multiple script tags (e.g. breakfast + lunch stacked on one page) each get
+ * their own widget instance. Each feed is fetched as ONE rollup JSON file
+ * (data/{menutype}-{school}.json, the whole available history, not split by
+ * month) straight from this repo on page load, cached for the life of the
+ * page — so it's always current, no iframe involved (works even where a host
+ * CSP blocks frame-src), no rebuild/re-paste needed, and month/week
+ * navigation after the first load is instant with zero extra network
+ * requests.
+ *
+ * Optional query params: view=week (default: calendar), displayName=...
+ *
+ * Alternative (if you're hosting this yourself and control the surrounding
+ * HTML, so data-* attributes are safe): a <div data-psmenu data-school="..."
+ * data-menutype="..."></div> is still auto-detected too.
  */
 (function () {
   'use strict';
@@ -111,12 +121,11 @@
     + '.psmenu .psmenu-day.today .psmenu-day-head{background:#dce6fb;}'
     + '.psmenu .psmenu-day-head h3{font-size:1.05rem;color:#1a3e9c;margin:0;display:inline-flex;align-items:center;gap:.5rem;font-weight:700;}'
     + '.psmenu .psmenu-day-head .psmenu-date{font-weight:700;color:#1a3e9c;font-size:1rem;}'
-    + '.psmenu .psmenu-flag{font-size:.65rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#3d2a00;background:#f5a623;padding:.15rem .5rem;border-radius:999px;}'
+    + '.psmenu .psmenu-flag{font-size:.65rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#0d2870;background:#cfe0fb;padding:.15rem .5rem;border-radius:999px;}'
     + '.psmenu .psmenu-day-body{padding:1rem 1.25rem 1.25rem;background:#fff;}'
     + '.psmenu ul.psmenu-items{list-style:none;margin:0;padding:0;}'
     + '.psmenu ul.psmenu-items li{padding-left:1.1rem;position:relative;margin-bottom:.4rem;color:#333;}'
     + '.psmenu ul.psmenu-items li:first-child::before{content:"";position:absolute;left:0;top:.55em;width:8px;height:8px;border-radius:50%;background:#1a3e9c;}'
-    + '.psmenu .psmenu-no-menu{color:#475569;font-style:italic;margin:0;}'
     + '.psmenu .psmenu-toggle{display:flex;justify-content:center;margin-top:1.25rem;}'
     + '.psmenu .psmenu-toggle button{background:#1a3e9c;color:#fff;border:0;padding:.65rem 1.5rem;border-radius:8px;font-weight:600;cursor:pointer;min-height:44px;}'
     + '.psmenu .psmenu-toggle button:hover{background:#0d2870;}'
@@ -152,12 +161,14 @@
 
   // ── Widget ────────────────────────────────────────────────────────────
 
-  function Widget(el) {
+  function Widget(el, config) {
+    config = config || {};
     this.el = el;
-    this.school = el.getAttribute('data-school');
-    this.menutype = el.getAttribute('data-menutype');
-    this.displayName = el.getAttribute('data-display-name') || SCHOOL_NAMES[this.school] || this.school;
-    this.view = el.getAttribute('data-view') === 'week' ? 'week' : 'calendar';
+    this.school = config.school || el.getAttribute('data-school');
+    this.menutype = config.menutype || el.getAttribute('data-menutype');
+    this.displayName = config.displayName || el.getAttribute('data-display-name')
+      || SCHOOL_NAMES[this.school] || this.school;
+    this.view = (config.view || el.getAttribute('data-view')) === 'week' ? 'week' : 'calendar';
     var today = new Date();
     this.year = today.getFullYear();
     this.month = today.getMonth() + 1;
@@ -225,8 +236,8 @@
         var key = dateKey(d);
         var items = itemMap[key] || [];
         var itemsHtml = items.length
-          ? '<ul class="psmenu-items">' + items.map(function (it) { return '<li>' + esc(it) + '</li>'; }).join('') + '</ul>'
-          : '<p class="psmenu-no-menu">No menu</p>';
+          ? '<ul class="psmenu-cal-items">' + items.map(function (it) { return '<li>' + esc(it) + '</li>'; }).join('') + '</ul>'
+          : '';
         return '<td data-day="' + esc(dayName) + '">'
           + '<span class="psmenu-sr-only">' + esc(fmtDateLong(d)) + ': </span>'
           + '<span class="psmenu-daynum" aria-hidden="true">' + d.getDate() + '</span>'
@@ -299,7 +310,7 @@
       var flag = isToday ? '<span class="psmenu-flag">Today</span>' : '';
       var itemsHtml = items.length
         ? '<ul class="psmenu-items">' + items.map(function (it) { return '<li>' + esc(it) + '</li>'; }).join('') + '</ul>'
-        : '<p class="psmenu-no-menu">No menu available</p>';
+        : '';
       return '<div class="psmenu-day' + (isToday ? ' today' : '') + '">'
         + '<div class="psmenu-day-head"><h3>' + esc(dayName) + flag + '</h3>'
         + '<span class="psmenu-date">' + esc(fmtDateFull(d)) + '</span></div>'
@@ -348,8 +359,46 @@
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
   // ── Boot ──────────────────────────────────────────────────────────────
+  //
+  // Two independent discovery paths, both run every boot() call so either
+  // (or both) can be present on a page:
+  //
+  //  1. <script src="...menu-widget.js?school=X&menutype=Y"> — the
+  //     recommended path for CMS "Custom HTML" blocks, since config lives in
+  //     the script's own src, which sanitizers can't strip without breaking
+  //     the script load itself. The script creates its own container.
+  //
+  //  2. <div data-psmenu data-school="X" data-menutype="Y"></div> — for
+  //     contexts you fully control where data-* attributes are known to
+  //     survive untouched.
 
-  function boot() {
+  function bootFromScriptTags() {
+    var scripts = document.querySelectorAll('script[src*="menu-widget.js"]');
+    for (var i = 0; i < scripts.length; i++) {
+      var script = scripts[i];
+      if (script.hasAttribute('data-psmenu-booted')) continue;
+
+      var params;
+      try { params = new URL(script.src, window.location.href).searchParams; }
+      catch (e) { continue; }
+
+      var school = params.get('school');
+      var menutype = params.get('menutype');
+      if (!school || !menutype) continue;
+
+      script.setAttribute('data-psmenu-booted', 'true');
+      var container = document.createElement('div');
+      script.parentNode.insertBefore(container, script.nextSibling);
+      new Widget(container, {
+        school: school,
+        menutype: menutype,
+        view: params.get('view'),
+        displayName: params.get('displayName')
+      }).init();
+    }
+  }
+
+  function bootFromDataAttr() {
     var els = document.querySelectorAll('[data-psmenu]');
     for (var i = 0; i < els.length; i++) {
       if (!els[i].hasAttribute('data-psmenu-init')) {
@@ -358,6 +407,15 @@
       }
     }
   }
+
+  function boot() {
+    bootFromScriptTags();
+    bootFromDataAttr();
+  }
+
+  // Exposed for fully self-contained embeds that hardcode their own config
+  // and mount their own container (see build_finalsite_embeds.py).
+  window.PSMenuWidget = { Widget: Widget };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
