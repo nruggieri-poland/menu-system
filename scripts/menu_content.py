@@ -5,14 +5,21 @@ doesn't come from Nutrislice (director contact, USDA program blurbs, a la
 carte options, pricing). Edit this file directly when prices or option
 lists change; nothing here is fetched automatically.
 
-Fields marked [PLACEHOLDER] were not supplied yet and must be replaced
-before that PDF variant should be treated as final. Currently placeholdered:
-  - McKinley breakfast (pricing/options)
-  - PSHS breakfast (pricing/options)
+Each feed's sidebar is a `sections` list, rendered top to bottom exactly in
+order — breakfast and lunch intentionally use a different box order/color
+scheme (matches the district's actual reference designs), so this is kept
+generic rather than assuming a fixed 5-box layout.
 
-Header banner images: if present, generate_pdf.py will use
-  scripts/assets/banner-{school}.jpg   (school photo/watermark banner)
-  scripts/assets/logo-nutrition-group.png
+Section kinds:
+  {"kind": "box", "color": "blue"|"pink"|"tan"|"green"|"purple",
+   "heading": str, "heading_italic": bool, "body": [str, ...],
+   "body_italic": bool, "columns": 1 | 2}
+  {"kind": "band", "label": str, "value": str}   -- plain gray band, e.g. milk
+
+Header banner images: generate_pdf.py uses
+  assets/images/{school}-menu-header.jpg   (school photo/watermark banner)
+  assets/images/the-nutrition-group.png
+falling back to a plain text-only header if either is missing.
 and otherwise falls back to a plain color banner with text only.
 """
 
@@ -24,9 +31,7 @@ DIRECTOR = {
 
 USDA_NOTICE = "USDA is an equal opportunity provider, employer, and lender."
 
-MILK_CHOICES = "Assorted Lowfat Milk"
-
-LUNCH_WHAT_MAKES_A_MEAL = [
+WHAT_MAKES_A_MEAL = [
     "You must choose at least 3 to 5 components available for the school lunch price.",
     "Choice of Meat or Meat Alternate",
     "Choice of Vegetable, Choice of Fruit*",
@@ -34,19 +39,25 @@ LUNCH_WHAT_MAKES_A_MEAL = [
     "*Students must choose at least one fruit or vegetable",
 ]
 
-BREAKFAST_WHAT_MAKES_A_MEAL_PLACEHOLDER = [
-    "[PLACEHOLDER — confirm breakfast component rule wording with the food service director]",
-    "Choice of Meat or Meat Alternate",
-    "Choice of Fruit",
-    "Choice of Grain/Bread, and Choice of Milk",
-    "*Students must choose at least one fruit",
-]
-
 FRUIT_VEG_CHOICES = [
     "Baby Carrots", "Broccoli", "Red & Green Peppers", "Cucumbers",
     "Grape Tomatoes", "Fresh Orange", "Assorted Applesauce", "Assorted Apples",
     "Mixed Fruit", "Tropical Pineapple Tidbits", "Citrusy Mandarin Oranges",
     "Peach Slices", "Diced Pears", "Blueberries w/Whip Topping", "Assorted Craisins",
+]
+
+BREAKFAST_ENTREES = [
+    "Assorted Poptarts", "Fruit and Yogurt Parfait", "Smoothies",
+    "Assorted Cereal with Toast", "Chocolate Chip Oatmeal Bar",
+    "String Cheese and Crackers", "Assorted Benefit Bars", "Goody Ring",
+    "Banana Muffin", "Chocolate Chip Muffin",
+]
+
+BREAKFAST_FRUIT_JUICE = [
+    "Apple, Orange, Blue Raspberry and Fruit Punch Juices",
+    "Assorted Applesauce flavors",
+    "Assorted Craisins",
+    "Assorted Fresh Fruit",
 ]
 
 MCKINLEY_LUNCH_OPTIONS = [
@@ -67,68 +78,84 @@ PSHS_LUNCH_OPTIONS = [
     "Charcuterie Bistro Box", "Egg & Cheese Bistro Box", "Grilled Buffalo Chicken Wrap",
 ]
 
-BREAKFAST_OPTIONS_PLACEHOLDER = ["[PLACEHOLDER — breakfast a la carte options]"]
+
+def _what_makes_a_meal_section():
+    return {
+        "kind": "box", "color": "blue", "heading": "What makes a meal?",
+        "heading_italic": False, "body": WHAT_MAKES_A_MEAL, "body_italic": False,
+        "columns": 1,
+    }
+
+
+def _milk_band():
+    return {"kind": "band", "label": "Daily Milk Choices", "value": "Assorted Lowfat Milk"}
+
+
+def _breakfast_sections():
+    return [
+        _what_makes_a_meal_section(),
+        {
+            "kind": "box", "color": "tan", "heading": "Additional Breakfast Entrées may include:",
+            "heading_italic": True, "body": BREAKFAST_ENTREES, "body_italic": True, "columns": 1,
+        },
+        {
+            "kind": "box", "color": "pink", "heading": "Breakfast Fruit and Juice Choices",
+            "heading_italic": True, "body": BREAKFAST_FRUIT_JUICE, "body_italic": True, "columns": 1,
+        },
+        _milk_band(),
+        {
+            "kind": "box", "color": "green", "heading": "Breakfast Prices", "heading_italic": False,
+            "body": ["Full Breakfast: $1.50", "Breakfast Entrée: $1.25", "Fruit Side: $1.00", "Milk: $.65"],
+            "body_italic": False, "columns": 1,
+        },
+    ]
+
+
+def _lunch_sections(options: list[str], options_columns: int, prices: list[str]):
+    return [
+        _what_makes_a_meal_section(),
+        {
+            "kind": "box", "color": "pink", "heading": "Additional Lunch Menu Options may include:",
+            "heading_italic": True, "body": options, "body_italic": True, "columns": options_columns,
+        },
+        {
+            "kind": "box", "color": "tan", "heading": "Lunch fruit and vegetable choices may include:",
+            "heading_italic": True, "body": FRUIT_VEG_CHOICES, "body_italic": True, "columns": 2,
+        },
+        _milk_band(),
+        {
+            "kind": "box", "color": "purple", "heading": "Lunch Prices", "heading_italic": False,
+            "body": prices, "body_italic": False, "columns": 1,
+        },
+    ]
+
 
 MENU_CONTENT = {
     ("mckinley-middle", "lunch"): {
         "banner_title": "McKinley Elementary & Poland Middle School",
-        "what_makes_a_meal": LUNCH_WHAT_MAKES_A_MEAL,
-        "options_heading": "Additional Lunch Menu Options may include:",
-        "options": MCKINLEY_LUNCH_OPTIONS,
-        "fruit_veg_choices": FRUIT_VEG_CHOICES,
-        "milk_choices": MILK_CHOICES,
-        "prices": [
-            ("Full Lunch", "$2.75"),
-            ("Lunch Entrée", "$2.00"),
-            ("Fruit/Vegetable Side", "$1.00"),
-            ("Milk", "$.65"),
-        ],
+        "sections": _lunch_sections(
+            MCKINLEY_LUNCH_OPTIONS, 1,
+            ["Full Lunch: $2.75", "Lunch Entrée: $2.00", "Fruit/Vegetable Side: $1.00", "Milk: $.65"],
+        ),
         "placeholder": False,
     },
     ("mckinley-middle", "breakfast"): {
         "banner_title": "McKinley Elementary & Poland Middle School",
-        "what_makes_a_meal": BREAKFAST_WHAT_MAKES_A_MEAL_PLACEHOLDER,
-        "options_heading": "Additional Breakfast Menu Options may include:",
-        "options": BREAKFAST_OPTIONS_PLACEHOLDER,
-        "fruit_veg_choices": FRUIT_VEG_CHOICES,
-        "milk_choices": MILK_CHOICES,
-        "prices": [
-            ("Full Breakfast", "[PLACEHOLDER]"),
-            ("Breakfast Entrée", "[PLACEHOLDER]"),
-            ("Fruit/Vegetable Side", "[PLACEHOLDER]"),
-            ("Milk", "[PLACEHOLDER]"),
-        ],
-        "placeholder": True,
+        "sections": _breakfast_sections(),
+        "placeholder": False,
     },
     ("pshs", "lunch"): {
         "banner_title": "Poland Seminary High School",
-        "what_makes_a_meal": LUNCH_WHAT_MAKES_A_MEAL,
-        "options_heading": "Additional Lunch Menu Options may include:",
-        "options": PSHS_LUNCH_OPTIONS,
-        "fruit_veg_choices": FRUIT_VEG_CHOICES,
-        "milk_choices": MILK_CHOICES,
-        "prices": [
-            ("Full Lunch", "$3.00"),
-            ("Lunch Entrée", "$2.50"),
-            ("Fruit/Vegetable Side", "$1.00"),
-            ("Milk", "$.65"),
-        ],
+        "sections": _lunch_sections(
+            PSHS_LUNCH_OPTIONS, 2,
+            ["Full Lunch: $3.00", "Lunch Entrée: $2.50", "Fruit/Vegetable Side: $1.00", "Milk: $.65"],
+        ),
         "placeholder": False,
     },
     ("pshs", "breakfast"): {
         "banner_title": "Poland Seminary High School",
-        "what_makes_a_meal": BREAKFAST_WHAT_MAKES_A_MEAL_PLACEHOLDER,
-        "options_heading": "Additional Breakfast Menu Options may include:",
-        "options": BREAKFAST_OPTIONS_PLACEHOLDER,
-        "fruit_veg_choices": FRUIT_VEG_CHOICES,
-        "milk_choices": MILK_CHOICES,
-        "prices": [
-            ("Full Breakfast", "[PLACEHOLDER]"),
-            ("Breakfast Entrée", "[PLACEHOLDER]"),
-            ("Fruit/Vegetable Side", "[PLACEHOLDER]"),
-            ("Milk", "[PLACEHOLDER]"),
-        ],
-        "placeholder": True,
+        "sections": _breakfast_sections(),
+        "placeholder": False,
     },
 }
 
@@ -136,11 +163,9 @@ MENU_CONTENT = {
 def get_content(school: str, menutype: str) -> dict:
     return MENU_CONTENT.get((school, menutype), {
         "banner_title": school,
-        "what_makes_a_meal": ["[PLACEHOLDER — no content configured for this feed]"],
-        "options_heading": "Additional Menu Options may include:",
-        "options": ["[PLACEHOLDER]"],
-        "fruit_veg_choices": FRUIT_VEG_CHOICES,
-        "milk_choices": MILK_CHOICES,
-        "prices": [("Price", "[PLACEHOLDER]")],
+        "sections": [{
+            "kind": "box", "color": "blue", "heading": "No content configured",
+            "heading_italic": False, "body": ["[PLACEHOLDER]"], "body_italic": False, "columns": 1,
+        }],
         "placeholder": True,
     })

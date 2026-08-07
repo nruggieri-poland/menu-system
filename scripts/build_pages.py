@@ -499,21 +499,23 @@ def build_embed_guide():
         widget_snippet = f'<script defer src="{widget_url}?school={school}&menutype={menutype}"></script>'
         widget_file_url = f"{REPO_BLOB_BASE}/widgets/{school}-{menutype}.html"
 
-        ym = latest_pdf_for(school, menutype)
-        if ym:
-            py, pm = ym
-            stem = f"{py}-{pm:02d}-{menutype}-{school}"
-            thumb_url = f"{PAGES_BASE}/pdfs/thumbnails/{stem}.png"
-            pdf_url = f"{PAGES_BASE}/pdfs/{stem}.pdf"
+        pdf_months = available_pdf_months_for(school, menutype)
+        if pdf_months:
+            lines = []
+            for py, pm in pdf_months:
+                stem = f"{py}-{pm:02d}-{menutype}-{school}"
+                thumb_url = f"{PAGES_BASE}/pdfs/thumbnails/{stem}.png"
+                pdf_url = f"{PAGES_BASE}/pdfs/{stem}.pdf"
+                lines.append(f"{MONTH_NAMES[pm]} {py} image: {thumb_url}\n{MONTH_NAMES[pm]} {py} links to: {pdf_url}")
             pdf_photo_note = (
-                f"Use {MONTH_NAMES[pm]} {py}'s thumbnail as the Finalsite \"photo\" component's image, "
-                f"and set its link to the PDF. The image already has a \"DOWNLOAD\" banner baked in, so "
-                f"no extra button/label is needed on the Finalsite side. Both URLs update automatically "
-                f"as the month rolls over."
+                "There are always exactly two PDFs live for each feed — current month and next month "
+                "— meant to sit side by side on the site as two \"photo\" components, each linking to "
+                "its own PDF. Each preview image is a plain branded card with the month/year prominent "
+                "(not a screenshot of the calendar grid, which is illegible at thumbnail size). Both "
+                "URLs below update automatically as the month rolls over — old months are removed "
+                "automatically, so there's never a third one to clean up."
             )
-            pdf_photo_snippet = (
-                f'<pre><code>Image: {esc(thumb_url)}\nLinks to: {esc(pdf_url)}</code></pre>'
-            )
+            pdf_photo_snippet = f'<pre><code>{esc(chr(10).join(lines))}</code></pre>'
         else:
             pdf_photo_note = "No PDF has been generated for this feed yet — run generate_pdf.py."
             pdf_photo_snippet = ""
@@ -615,20 +617,15 @@ def build_embed_guide():
 MEAL_ICONS = {"breakfast": "🥞", "lunch": "🍕"}
 
 
-def latest_pdf_for(school: str, menutype: str) -> tuple[int, int] | None:
-    """Most recent (year, month) with a generated PDF on disk, preferring the
-    current month if it exists."""
+def available_pdf_months_for(school: str, menutype: str) -> list[tuple[int, int]]:
+    """(year, month) pairs with a generated PDF on disk for this feed — in
+    the normal daily build this is exactly [current month, next month],
+    since generate_pdf.py prunes anything else."""
     pdf_dir = SITE / "pdfs"
-    months = sorted({
+    return sorted({
         (int(p.stem.split("-")[0]), int(p.stem.split("-")[1]))
         for p in pdf_dir.glob(f"*-{menutype}-{school}.pdf")
     })
-    if not months:
-        return None
-    today = date.today()
-    if (today.year, today.month) in months:
-        return (today.year, today.month)
-    return months[-1]
 
 
 def build_index_page():
@@ -646,9 +643,7 @@ def build_index_page():
         <span class="card-desc">Monthly calendar — accessible, mobile-friendly, iframe-ready</span>
       </a>""")
 
-        ym = latest_pdf_for(school, menutype)
-        if ym:
-            year, month = ym
+        for year, month in available_pdf_months_for(school, menutype):
             stem = f"{year}-{month:02d}-{menutype}-{school}"
             pdf_cards.append(f"""
       <a class="card pdf-card" href="pdfs/{stem}.pdf">

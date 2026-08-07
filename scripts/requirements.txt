@@ -1,4 +1,4 @@
 requests
 reportlab
-pdf2image
 Pillow
+pdf2image

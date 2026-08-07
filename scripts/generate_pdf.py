@@ -38,14 +38,25 @@ WHITE       = colors.white
 BORDER      = colors.HexColor("#c7d0e6")
 GRID_HEAD   = SCHOOL_BLUE
 
-# Pastel tints derived from SCHOOL_BLUE (15% color / 85% white) plus three
-# accent hues at the same tint ratio, for the four sidebar info boxes.
-BOX_BLUE    = colors.HexColor("#d9e0ee")
-BOX_PINK    = colors.HexColor("#fbdbdb")
-BOX_TAN     = colors.HexColor("#fdf1cf")
-BOX_PURPLE  = colors.HexColor("#e3ddf5")
-HEAD_BLUE   = SCHOOL_BLUE
-HEAD_RED    = colors.HexColor("#a33333")
+# Pastel sidebar box backgrounds + a matching darker heading color for each,
+# following the district's reference designs — the heading color always
+# matches the hue of its own box (blue heading on the blue box, red heading
+# on the pink box, etc.), not the box's semantic content.
+BOX_COLORS = {
+    "blue":   colors.HexColor("#d9e0ee"),
+    "pink":   colors.HexColor("#fbdbdb"),
+    "tan":    colors.HexColor("#fdf1cf"),
+    "green":  colors.HexColor("#dcefdc"),
+    "purple": colors.HexColor("#e3ddf5"),
+    "gray":   colors.HexColor("#e6e6e6"),
+}
+HEAD_COLORS = {
+    "blue":   SCHOOL_BLUE,
+    "pink":   colors.HexColor("#a33333"),
+    "tan":    SCHOOL_BLUE,
+    "green":  colors.HexColor("#1f6b3a"),
+    "purple": colors.HexColor("#4a3f8a"),
+}
 
 # ---------------------------------------------------------------------------
 # Layout constants  (landscape letter = 11 × 8.5 in)
@@ -53,7 +64,7 @@ HEAD_RED    = colors.HexColor("#a33333")
 PAGE_W, PAGE_H = landscape(letter)
 MARGIN      = 0.4 * inch
 
-HEADER_H    = 1.15 * inch
+HEADER_H    = 1.55 * inch  # taller than before to leave room for the banner photo strip
 SIDEBAR_W   = 2.55 * inch
 GAP         = 0.16 * inch
 
@@ -68,7 +79,7 @@ NUM_COLS    = 5
 COL_W       = GRID_W / NUM_COLS
 
 DATA_DIR    = Path(__file__).parent.parent / "data"
-ASSETS_DIR  = Path(__file__).parent / "assets"
+ASSETS_DIR  = Path(__file__).parent.parent / "assets" / "images"
 # PDFs live under site/ so GitHub Pages actually publishes them (site/ is the
 # only path uploaded by the Pages deploy workflow).
 PDF_DIR     = Path(__file__).parent.parent / "site" / "pdfs"
@@ -174,43 +185,50 @@ def draw_header(c: canvas.Canvas, school: str, menutype: str, year: int, month: 
     c.setLineWidth(0.75)
     c.line(left, top - 55, left + text_w, top - 55)
 
-    # Banner photo strip (optional), centered between the title block and the
-    # director info block on the right.
-    banner_img = load_image(ASSETS_DIR / f"banner-{school}.jpg") or load_image(ASSETS_DIR / f"banner-{school}.png")
-    photo_x = left + 2.9 * inch
-    photo_w = PAGE_W - MARGIN - 1.9 * inch - photo_x
-    photo_h = 0.62 * inch
-    photo_y = top - HEADER_H + (HEADER_H - photo_h) / 2 - 0.05 * inch
-    if banner_img is not None and photo_w > 0:
+    # Director contact block (top-right) — logo sits above the text so the
+    # whole block stays within the same top text zone as the title on the
+    # left (roughly top-0 to top-58), leaving the row below free for the
+    # full-width banner photo with nothing else overlapping it.
+    dx = PAGE_W - MARGIN
+    logo_img = load_image(ASSETS_DIR / "the-nutrition-group.png")
+    if logo_img is not None:
+        try:
+            logo_w, logo_h = 0.85 * inch, 0.24 * inch
+            c.drawImage(logo_img, dx - logo_w, top - 4 - logo_h, width=logo_w, height=logo_h,
+                        preserveAspectRatio=True, anchor='c', mask='auto')
+        except Exception as e:
+            print(f"  ⚠ Could not draw logo: {e}")
+
+    c.setFont("Helvetica-Bold", 7)
+    c.setFillColor(INK)
+    c.drawRightString(dx, top - 34, "Food Service Director:")
+    c.setFont("Helvetica-Bold", 7.5)
+    c.drawRightString(dx, top - 43, DIRECTOR["name"])
+    c.setFont("Helvetica", 7)
+    c.setFillColor(MUTED)
+    c.drawRightString(dx, top - 52, DIRECTOR["email"])
+    c.drawRightString(dx, top - 61, DIRECTOR["phone"])
+
+    # Banner photo strip (optional) — a full-width strip along the bottom of
+    # the header band, below all the header text so nothing overlaps it.
+    banner_img = load_image(ASSETS_DIR / f"{school}-menu-header.jpg") or load_image(ASSETS_DIR / f"{school}-menu-header.png")
+    photo_x = left
+    photo_w = PAGE_W - MARGIN - left
+    photo_top = top - 68
+    photo_bot = top - HEADER_H + 6
+    photo_h = photo_top - photo_bot
+    photo_y = photo_bot
+    if banner_img is not None and photo_w > 0 and photo_h > 0:
         try:
             c.saveState()
-            c.rect(photo_x, photo_y, photo_w, photo_h, stroke=0, fill=0)
+            p = c.beginPath()
+            p.roundRect(photo_x, photo_y, photo_w, photo_h, 4)
+            c.clipPath(p, stroke=0)
             c.drawImage(banner_img, photo_x, photo_y, width=photo_w, height=photo_h,
                         preserveAspectRatio=True, anchor='c', mask='auto')
             c.restoreState()
         except Exception as e:
             print(f"  ⚠ Could not draw banner image: {e}")
-
-    # Director contact block (top-right)
-    dx = PAGE_W - MARGIN
-    c.setFont("Helvetica-Bold", 7)
-    c.setFillColor(INK)
-    c.drawRightString(dx, top - 10, "Food Service Director:")
-    c.setFont("Helvetica-Bold", 7.5)
-    c.drawRightString(dx, top - 20, DIRECTOR["name"])
-    c.setFont("Helvetica", 7)
-    c.setFillColor(MUTED)
-    c.drawRightString(dx, top - 29, DIRECTOR["email"])
-    c.drawRightString(dx, top - 38, DIRECTOR["phone"])
-
-    logo_img = load_image(ASSETS_DIR / "logo-nutrition-group.png")
-    if logo_img is not None:
-        try:
-            logo_w, logo_h = 0.55 * inch, 0.55 * inch
-            c.drawImage(logo_img, dx - logo_w, top - 38 - logo_h, width=logo_w, height=logo_h,
-                        preserveAspectRatio=True, anchor='c', mask='auto')
-        except Exception as e:
-            print(f"  ⚠ Could not draw logo: {e}")
 
     # Divider under the whole header band
     c.setStrokeColor(BORDER)
@@ -222,69 +240,87 @@ def draw_header(c: canvas.Canvas, school: str, menutype: str, year: int, month: 
 # Sidebar
 # ---------------------------------------------------------------------------
 
-def wrap_box_lines(w: float, heading: str, lines: list[str], font_size: float,
-                    pad: float) -> tuple[list[str], list[str]]:
-    max_chars = max(8, int((w - 2 * pad) / (font_size * 0.52)))
-    heading_lines = wrap_text_lines(heading, max_chars) or [heading]
+SIDEBAR_GAP = 0.09 * inch
+SIDEBAR_PAD = 0.09 * inch
+COL_GAP = 0.08 * inch
+
+
+def _wrap_column(items: list[str], col_w: float, font_size: float, pad: float) -> list[str]:
+    max_chars = max(6, int((col_w - pad) / (font_size * 0.52)))
     wrapped: list[str] = []
-    for item in lines:
+    for item in items:
         wrapped.extend(wrap_text_lines(item, max_chars) or [""])
-    return heading_lines, wrapped
+    return wrapped
 
 
-def box_height(w: float, heading: str, lines: list[str], font_size: float,
-                heading_size: float, pad: float) -> float:
-    heading_lines, wrapped = wrap_box_lines(w, heading, lines, font_size, pad)
+def _section_columns(section: dict, w: float, font_size: float, pad: float) -> list[list[str]]:
+    """Splits a section's body into 1 or 2 wrapped-line columns."""
+    items = section["body"]
+    n_cols = section.get("columns", 1)
+    if n_cols == 1:
+        return [_wrap_column(items, w - 2 * pad, font_size, pad)]
+    col_w = (w - 2 * pad - COL_GAP) / 2
+    split = (len(items) + 1) // 2
+    return [_wrap_column(items[:split], col_w, font_size, pad),
+            _wrap_column(items[split:], col_w, font_size, pad)]
+
+
+def section_height(section: dict, w: float, font_size: float, heading_size: float, pad: float) -> float:
+    heading_max_chars = max(8, int((w - 2 * pad) / (heading_size * 0.52)))
+    heading_lines = wrap_text_lines(section["heading"], heading_max_chars) or [section["heading"]]
     line_h = font_size + 2.6
-    return pad + len(heading_lines) * (heading_size + 2) + 4 + len(wrapped) * line_h + pad
+    columns = _section_columns(section, w, font_size, pad)
+    body_lines = max(len(c) for c in columns)
+    return pad + len(heading_lines) * (heading_size + 2) + 4 + body_lines * line_h + pad
 
 
-def draw_box(c: canvas.Canvas, x: float, y_top: float, w: float, bg, heading: str,
-             heading_color, lines: list[str], font_size: float,
-             heading_size: float, pad: float = 0.09 * inch) -> float:
-    """Draws a rounded info box starting at y_top, returns the y of its bottom edge."""
-    heading_lines, wrapped = wrap_box_lines(w, heading, lines, font_size, pad)
-    line_h = font_size + 2.6
-    content_h = box_height(w, heading, lines, font_size, heading_size, pad)
+def draw_section(c: canvas.Canvas, section: dict, x: float, y_top: float, w: float,
+                  font_size: float, heading_size: float, pad: float = SIDEBAR_PAD) -> float:
+    """Draws one rounded sidebar box (1 or 2 body columns), returns the y of its bottom edge."""
+    bg = BOX_COLORS[section["color"]]
+    heading_color = HEAD_COLORS[section["color"]]
+    heading_max_chars = max(8, int((w - 2 * pad) / (heading_size * 0.52)))
+    heading_lines = wrap_text_lines(section["heading"], heading_max_chars) or [section["heading"]]
+    columns = _section_columns(section, w, font_size, pad)
+    content_h = section_height(section, w, font_size, heading_size, pad)
     y_bot = y_top - content_h
 
     c.setFillColor(bg)
     c.roundRect(x, y_bot, w, content_h, radius=4, fill=1, stroke=0)
 
+    heading_font = "Helvetica-BoldOblique" if section.get("heading_italic", True) else "Helvetica-Bold"
     ty = y_top - pad - heading_size
-    c.setFont("Helvetica-BoldOblique", heading_size)
+    c.setFont(heading_font, heading_size)
     c.setFillColor(heading_color)
     for hl in heading_lines:
-        c.drawString(x + pad, ty, hl)
+        c.drawCentredString(x + w / 2, ty, hl)
         ty -= heading_size + 2
 
-    ty -= 2
-    c.setFont("Helvetica", font_size)
-    c.setFillColor(INK)
-    for line in wrapped:
-        ty -= line_h
-        c.drawString(x + pad, ty + (line_h - font_size), line)
+    body_top = ty - 2
+    line_h = font_size + 2.6
+    body_font = "Helvetica-Oblique" if section.get("body_italic", True) else "Helvetica"
+    col_w = w - 2 * pad if len(columns) == 1 else (w - 2 * pad - COL_GAP) / 2
+    for i, col_lines in enumerate(columns):
+        cx = x + pad + i * (col_w + COL_GAP)
+        cy = body_top
+        c.setFont(body_font, font_size)
+        c.setFillColor(INK)
+        for line in col_lines:
+            cy -= line_h
+            c.drawString(cx, cy + (line_h - font_size), line)
 
     return y_bot
 
 
-SIDEBAR_GAP = 0.09 * inch
-SIDEBAR_PAD = 0.09 * inch
-
-
 def sidebar_content_height(content: dict, font_size: float, heading_size: float) -> float:
     w = SIDEBAR_W
-    h = box_height(w, "What makes a meal?", content["what_makes_a_meal"], font_size, heading_size, SIDEBAR_PAD)
-    h += SIDEBAR_GAP
-    h += box_height(w, content["options_heading"], content["options"], font_size, heading_size, SIDEBAR_PAD)
-    h += SIDEBAR_GAP
-    h += box_height(w, "fruit and vegetable choices may include:", content["fruit_veg_choices"],
-                     font_size, heading_size, SIDEBAR_PAD)
-    h += SIDEBAR_GAP
-    h += 22  # milk choices line
-    price_lines = [f"{label}: {amount}" for label, amount in content["prices"]]
-    h += box_height(w, "Prices", price_lines, font_size + 0.4, heading_size + 0.5, SIDEBAR_PAD)
-    h += SIDEBAR_GAP
+    h = 0.0
+    for section in content["sections"]:
+        if section["kind"] == "band":
+            h += 22
+        else:
+            h += section_height(section, w, font_size, heading_size, SIDEBAR_PAD)
+        h += SIDEBAR_GAP
     h += 20  # USDA notice
     if content.get("placeholder"):
         h += 20
@@ -313,25 +349,20 @@ def draw_sidebar(c: canvas.Canvas, school: str, menutype: str):
     font_size = fit_sidebar_font_size(content)
     heading_size = font_size + 1.3
 
-    y = draw_box(c, x, y, w, BOX_BLUE, "What makes a meal?", HEAD_BLUE,
-                 content["what_makes_a_meal"], font_size, heading_size) - gap
-    y = draw_box(c, x, y, w, BOX_PINK, content["options_heading"], HEAD_RED,
-                 content["options"], font_size, heading_size) - gap
-    y = draw_box(c, x, y, w, BOX_TAN, f"{menutype.capitalize()} fruit and vegetable choices may include:",
-                 HEAD_BLUE, content["fruit_veg_choices"], font_size, heading_size) - gap
-
-    # Milk choices (plain line, not boxed)
-    c.setFont("Helvetica-Bold", 8)
-    c.setFillColor(INK)
-    c.drawString(x, y - 10, "Daily Milk Choices")
-    c.setFont("Helvetica", 7.5)
-    c.setFillColor(MUTED)
-    c.drawString(x + c.stringWidth("Daily Milk Choices  ", "Helvetica-Bold", 8), y - 10, content["milk_choices"])
-    y -= 22
-
-    price_lines = [f"{label}: {amount}" for label, amount in content["prices"]]
-    y = draw_box(c, x, y, w, BOX_PURPLE, f"{menutype.capitalize()} Prices", HEAD_BLUE,
-                 price_lines, font_size + 0.4, heading_size + 0.5) - gap
+    for section in content["sections"]:
+        if section["kind"] == "band":
+            c.setFillColor(BOX_COLORS["gray"])
+            c.roundRect(x, y - 22, w, 22, radius=4, fill=1, stroke=0)
+            c.setFont("Helvetica-Bold", 8)
+            c.setFillColor(INK)
+            c.drawString(x + SIDEBAR_PAD, y - 14, section["label"])
+            c.setFont("Helvetica-Oblique", 7.5)
+            c.setFillColor(MUTED)
+            label_w = c.stringWidth(section["label"] + "  ", "Helvetica-Bold", 8)
+            c.drawString(x + SIDEBAR_PAD + label_w, y - 14, section["value"])
+            y -= 22 + gap
+        else:
+            y = draw_section(c, section, x, y, w, font_size, heading_size) - gap
 
     if content.get("placeholder"):
         c.setFont("Helvetica-Oblique", 6.5)
@@ -469,6 +500,23 @@ def generate_all(months: list[tuple[int, int]]):
             print(f"  ✓ {out_path.name}")
 
 
+def prune_stale_pdfs(keep_months: list[tuple[int, int]]):
+    """Removes PDFs (and their preview cards) for any month other than the
+    ones just generated — the site should only ever offer the current month
+    and next month, never accumulate old ones."""
+    keep_stems = {f"{y}-{m:02d}" for y, m in keep_months}
+    removed = 0
+    for pdf_path in PDF_DIR.glob("*.pdf"):
+        if pdf_path.stem[:7] not in keep_stems:
+            pdf_path.unlink()
+            thumb = PDF_DIR / "thumbnails" / f"{pdf_path.stem}.png"
+            if thumb.exists():
+                thumb.unlink()
+            removed += 1
+    if removed:
+        print(f"\n  Pruned {removed} stale PDF(s)/preview card(s) outside {sorted(keep_stems)}")
+
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
@@ -478,13 +526,15 @@ if __name__ == "__main__":
 
     if args.year and args.month:
         months = [(args.year, args.month)]
+        generate_all(months)
     else:
-        # Default: current month + next month, so there's always a PDF ready
-        # for the upcoming month before it starts.
+        # Default: current month + next month only — the site should never
+        # show more than these two, so anything else on disk gets removed.
         today = date.today()
         this_month = (today.year, today.month)
         next_month = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
         months = [this_month, next_month]
+        generate_all(months)
+        prune_stale_pdfs(months)
 
-    generate_all(months)
     print("\n✅ PDFs generated.")
