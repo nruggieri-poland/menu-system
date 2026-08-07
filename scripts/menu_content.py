@@ -62,7 +62,7 @@ MCKINLEY_LUNCH_OPTIONS = [
 PSHS_LUNCH_OPTIONS = [
     "Cheese Pizza", "Pepperoni Pizza", "Breaded Chicken Sandwich",
     "Crispy Spicy Chicken Patty Sandwich", "Cheeseburger on a Bun",
-    "Baked French Fries", "Chef Salad, Turkey/Ham/Cheese/Egg",
+    "Baked French Fries", "Chef Salad, Turkey/Ham/Cheese,Egg",
     "Popcorn Chicken Salad w/ Fresh Bread", "Fruit & Yogurt Parfait with Granola",
     "Charcuterie Bistro Box", "Egg & Cheese Bistro Box", "Grilled Buffalo Chicken Wrap",
 ]

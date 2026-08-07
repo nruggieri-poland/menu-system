@@ -27,20 +27,24 @@ from reportlab.lib.utils import ImageReader
 from menu_content import get_content, DIRECTOR, USDA_NOTICE
 
 # ---------------------------------------------------------------------------
-# Brand colors
+# Brand colors — built around the school color, #00328f. White page
+# background throughout (this PDF is meant to print on plain white paper).
 # ---------------------------------------------------------------------------
-NAVY        = colors.HexColor("#1a3e9c")
+SCHOOL_BLUE = colors.HexColor("#00328f")
+NAVY        = SCHOOL_BLUE
 INK         = colors.HexColor("#222222")
 MUTED       = colors.HexColor("#555555")
 WHITE       = colors.white
-BORDER      = colors.HexColor("#c9d2e0")
-GRID_HEAD   = colors.HexColor("#1a3e9c")
+BORDER      = colors.HexColor("#c7d0e6")
+GRID_HEAD   = SCHOOL_BLUE
 
-BOX_BLUE    = colors.HexColor("#dbe9fb")
+# Pastel tints derived from SCHOOL_BLUE (15% color / 85% white) plus three
+# accent hues at the same tint ratio, for the four sidebar info boxes.
+BOX_BLUE    = colors.HexColor("#d9e0ee")
 BOX_PINK    = colors.HexColor("#fbdbdb")
 BOX_TAN     = colors.HexColor("#fdf1cf")
 BOX_PURPLE  = colors.HexColor("#e3ddf5")
-HEAD_BLUE   = colors.HexColor("#1a3e9c")
+HEAD_BLUE   = SCHOOL_BLUE
 HEAD_RED    = colors.HexColor("#a33333")
 
 # ---------------------------------------------------------------------------

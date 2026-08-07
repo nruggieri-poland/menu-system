@@ -87,14 +87,12 @@
     + '.psmenu-mckinley-middle-breakfast *,.psmenu-mckinley-middle-breakfast *::before,.psmenu-mckinley-middle-breakfast *::after{box-sizing:border-box;}'
     + '.psmenu-mckinley-middle-breakfast a{color:#0d2870;}'
     + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}'
-    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.75rem 1rem;padding-bottom:.5rem;}'
-    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-eyebrow{font-size:.8rem;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin:0 0 .2rem;}'
-    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-head h2{color:#1a3e9c;font-size:clamp(1.3rem,4vw,1.8rem);margin:0;line-height:1.2;}'
-    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-nav{display:flex;gap:.5rem;flex-shrink:0;align-items:center;flex-wrap:wrap;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-announce:focus{position:static;width:auto;height:auto;margin:0 0 .5rem;padding:.4rem .6rem;overflow:visible;clip:auto;white-space:normal;display:block;background:#eef0f2;color:#1a3e9c;font-size:.85rem;font-weight:600;border-radius:6px;outline:3px solid #0b57d0;outline-offset:2px;}'
+    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-nav{display:flex;justify-content:flex-end;gap:.5rem;width:100%;align-items:center;flex-wrap:wrap;padding-bottom:.75rem;}'
     + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-nav button{background:#2d3748;color:#fff;border:0;border-radius:8px;padding:.55rem .95rem;font-size:.85rem;font-weight:600;cursor:pointer;min-height:44px;min-width:44px;}'
     + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-nav button:hover{background:#1c2536;}'
     + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-nav button:disabled{opacity:.4;cursor:default;}'
-    + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-nav button:focus-visible{outline:3px solid #0b57d0;outline-offset:2px;}'
+    + '.psmenu-mckinley-middle-breakfast button:focus-visible{outline:3px solid #0b57d0;outline-offset:2px;}'
     + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-print{background:none !important;color:#0d2870 !important;text-decoration:underline;font-weight:400 !important;}'
     + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-daylist{border:1px solid #d8dee9;border-radius:10px;overflow:hidden;}'
     + '.psmenu-mckinley-middle-breakfast .psmenu-mckinley-middle-breakfast-day + .psmenu-mckinley-middle-breakfast-day{border-top:1px solid #d8dee9;}'
@@ -159,31 +157,50 @@
   Widget.prototype.init = function () {
     injectStyleOnce();
     this.el.classList.add('psmenu-mckinley-middle-breakfast');
-    this.el.setAttribute('aria-live', 'polite');
     if (!this.school || !this.menutype) {
       this.el.innerHTML = '<p class="psmenu-mckinley-middle-breakfast-status">Menu embed is missing data-school / data-menutype.</p>';
       return;
     }
-    this.render();
+    // No visible heading is rendered (the host page supplies its own page
+    // title), so give the region an accessible name directly instead —
+    // otherwise screen reader users tabbing in would get no context at all.
+    this.el.setAttribute('role', 'region');
+    this.el.setAttribute('aria-label', this.displayName + ' ' + cap(this.menutype) + ' menu');
+    this.render(false);
   };
 
   Widget.prototype.getItemMap = function () {
     return fetchRollup(this.school, this.menutype);
   };
 
-  Widget.prototype.render = function () {
+  // moveFocus is true only for user-initiated navigation (prev/next/today/
+  // view toggle), never on the initial page-load render — moving focus on
+  // load would be jarring and unexpected. A blanket aria-live region on this
+  // whole container would work for announcing updates too, but every
+  // navigation swaps in an entire month's worth of menu items, and a
+  // "polite" live region would read all of that out loud on every click.
+  // Moving focus to the heading instead announces just "September 2026" via
+  // the normal focus-change announcement, which is what a sighted user
+  // effectively "sees" happen too.
+  Widget.prototype.render = function (moveFocus) {
     this.el.innerHTML = '<p class="psmenu-mckinley-middle-breakfast-status">Loading menu&hellip;</p>';
-    if (this.view === 'calendar') this.renderCalendar();
-    else this.renderWeek();
+    if (this.view === 'calendar') this.renderCalendar(moveFocus);
+    else this.renderWeek(moveFocus);
+  };
+
+  Widget.prototype.focusHeading = function () {
+    var target = this.el.querySelector('.psmenu-mckinley-middle-breakfast-announce');
+    if (target) target.focus();
   };
 
   // ── Month / calendar view ────────────────────────────────────────────
 
-  Widget.prototype.renderCalendar = function () {
+  Widget.prototype.renderCalendar = function (moveFocus) {
     var self = this;
     this.getItemMap().then(function (itemMap) {
       self.el.innerHTML = self.buildCalendarHTML(itemMap, self.year, self.month);
       self.bindCalendarNav();
+      if (moveFocus) self.focusHeading();
     });
   };
 
@@ -233,15 +250,13 @@
       : '';
 
     return ''
-      + '<div class="psmenu-mckinley-middle-breakfast-head">'
-      + '<div><p class="psmenu-mckinley-middle-breakfast-eyebrow">' + esc(this.displayName) + ' &middot; ' + esc(cap(this.menutype)) + '</p>'
-      + '<h2>' + esc(monthLabel) + '</h2></div>'
+      + '<p class="psmenu-mckinley-middle-breakfast-sr-only psmenu-mckinley-middle-breakfast-announce" tabindex="-1">' + esc(monthLabel) + '</p>'
       + '<nav class="psmenu-mckinley-middle-breakfast-nav" aria-label="Month navigation">'
       + '<button type="button" data-nav="today">Today</button>'
       + '<button type="button" data-nav="prev" aria-label="Previous month">&larr;</button>'
       + '<button type="button" data-nav="next" aria-label="Next month">&rarr;</button>'
       + '<button type="button" data-nav="print" class="psmenu-mckinley-middle-breakfast-print">Print</button>'
-      + '</nav></div>'
+      + '</nav>'
       + noDataNote
       + '<table class="psmenu-mckinley-middle-breakfast-cal"><caption>' + esc(cap(this.menutype)) + ' menu &mdash; ' + esc(this.displayName) + ' &mdash; ' + esc(monthLabel) + '</caption>'
       + '<thead><tr>' + headerCells + '</tr></thead><tbody>' + rowsHtml + '</tbody></table>'
@@ -253,9 +268,9 @@
     bindNav(this.el, {
       prev: function () { self.shiftMonth(-1); },
       next: function () { self.shiftMonth(1); },
-      today: function () { var t = new Date(); self.year = t.getFullYear(); self.month = t.getMonth() + 1; self.render(); },
+      today: function () { var t = new Date(); self.year = t.getFullYear(); self.month = t.getMonth() + 1; self.render(true); },
       print: function () { window.print(); },
-      list: function () { self.view = 'week'; self.render(); }
+      list: function () { self.view = 'week'; self.render(true); }
     });
   };
 
@@ -264,16 +279,17 @@
     if (m < 1) { m = 12; y -= 1; }
     if (m > 12) { m = 1; y += 1; }
     this.year = y; this.month = m;
-    this.render();
+    this.render(true);
   };
 
   // ── Week / list view ──────────────────────────────────────────────────
 
-  Widget.prototype.renderWeek = function () {
+  Widget.prototype.renderWeek = function (moveFocus) {
     var self = this;
     this.getItemMap().then(function (itemMap) {
       self.el.innerHTML = self.buildWeekHTML(itemMap, self.monday);
       self.bindWeekNav();
+      if (moveFocus) self.focusHeading();
     });
   };
 
@@ -302,16 +318,16 @@
       ? '<p class="psmenu-mckinley-middle-breakfast-status">Sorry, the menu couldn&rsquo;t be loaded right now. Please try again later.</p>'
       : '';
 
+    var weekLabel = fmtDate(monday) + ' – ' + fmtDate(friday) + ', ' + monday.getFullYear();
+
     return ''
-      + '<div class="psmenu-mckinley-middle-breakfast-head">'
-      + '<div><p class="psmenu-mckinley-middle-breakfast-eyebrow">' + esc(this.displayName) + ' &middot; ' + esc(cap(this.menutype)) + '</p>'
-      + '<h2>' + esc(fmtDate(monday)) + ' &ndash; ' + esc(fmtDate(friday)) + ', ' + monday.getFullYear() + '</h2></div>'
+      + '<p class="psmenu-mckinley-middle-breakfast-sr-only psmenu-mckinley-middle-breakfast-announce" tabindex="-1">' + esc(weekLabel) + '</p>'
       + '<nav class="psmenu-mckinley-middle-breakfast-nav" aria-label="Week navigation">'
       + '<button type="button" data-nav="today">Today</button>'
       + '<button type="button" data-nav="prev" aria-label="Previous week">&larr;</button>'
       + '<button type="button" data-nav="next" aria-label="Next week">&rarr;</button>'
       + '<button type="button" data-nav="print" class="psmenu-mckinley-middle-breakfast-print">Print</button>'
-      + '</nav></div>'
+      + '</nav>'
       + noDataNote
       + '<div class="psmenu-mckinley-middle-breakfast-daylist">' + rows + '</div>'
       + '<div class="psmenu-mckinley-middle-breakfast-toggle"><button type="button" data-nav="month">Month View</button></div>';
@@ -320,11 +336,11 @@
   Widget.prototype.bindWeekNav = function () {
     var self = this;
     bindNav(this.el, {
-      prev: function () { self.monday = addDays(self.monday, -7); self.render(); },
-      next: function () { self.monday = addDays(self.monday, 7); self.render(); },
-      today: function () { self.monday = getMonday(new Date()); self.render(); },
+      prev: function () { self.monday = addDays(self.monday, -7); self.render(true); },
+      next: function () { self.monday = addDays(self.monday, 7); self.render(true); },
+      today: function () { self.monday = getMonday(new Date()); self.render(true); },
       print: function () { window.print(); },
-      month: function () { self.view = 'calendar'; self.render(); }
+      month: function () { self.view = 'calendar'; self.render(true); }
     });
   };
 

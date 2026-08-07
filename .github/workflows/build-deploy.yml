@@ -46,8 +46,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install poppler (PDF -> image rendering for thumbnails)
-        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - name: Install poppler + font (PDF -> image rendering for thumbnails)
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils fonts-dejavu-core
 
       - name: Install Python dependencies
         run: pip install -r scripts/requirements.txt

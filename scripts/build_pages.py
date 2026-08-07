@@ -499,6 +499,25 @@ def build_embed_guide():
         widget_snippet = f'<script defer src="{widget_url}?school={school}&menutype={menutype}"></script>'
         widget_file_url = f"{REPO_BLOB_BASE}/widgets/{school}-{menutype}.html"
 
+        ym = latest_pdf_for(school, menutype)
+        if ym:
+            py, pm = ym
+            stem = f"{py}-{pm:02d}-{menutype}-{school}"
+            thumb_url = f"{PAGES_BASE}/pdfs/thumbnails/{stem}.png"
+            pdf_url = f"{PAGES_BASE}/pdfs/{stem}.pdf"
+            pdf_photo_note = (
+                f"Use {MONTH_NAMES[pm]} {py}'s thumbnail as the Finalsite \"photo\" component's image, "
+                f"and set its link to the PDF. The image already has a \"DOWNLOAD\" banner baked in, so "
+                f"no extra button/label is needed on the Finalsite side. Both URLs update automatically "
+                f"as the month rolls over."
+            )
+            pdf_photo_snippet = (
+                f'<pre><code>Image: {esc(thumb_url)}\nLinks to: {esc(pdf_url)}</code></pre>'
+            )
+        else:
+            pdf_photo_note = "No PDF has been generated for this feed yet — run generate_pdf.py."
+            pdf_photo_snippet = ""
+
         cal_iframe_snippet = (
             f'<iframe src="{cal_url}" title="{esc(display_name)} {esc(menutype)} calendar" '
             f'style="width:100%;max-width:900px;border:0;min-height:800px" loading="lazy"></iframe>'
@@ -521,9 +540,11 @@ def build_embed_guide():
       of the other three widget files on the same page with zero risk of collision. The menu data
       itself is never hardcoded &mdash; the only network request it makes at runtime is fetching
       the current JSON from the repo, so it always shows live data with no rebuild/re-paste
-      needed. Built on semantic HTML (a real <code>&lt;table&gt;</code> for the grid, proper
-      headings, focus-visible states, 44px touch targets) rather than a calendar library's
-      non-semantic div grid.</p>
+      needed. No visible title/heading is rendered &mdash; Finalsite's own page title already
+      covers that, so the widget doesn't duplicate it (the page section it's on still gets an
+      accessible name for screen readers, just not a second visible heading). Built on semantic
+      HTML (a real <code>&lt;table&gt;</code> for the grid, focus-visible states, 44px touch
+      targets) rather than a calendar library's non-semantic div grid.</p>
 
       <h3>Lighter alternative: one script tag, shared engine</h3>
       <p>Functionally identical, but loads the engine from one shared external file instead of
@@ -548,10 +569,10 @@ def build_embed_guide():
       pasted copy freezes at paste time &mdash; you'd need to re-copy it each time the menu
       changes to stay current.</p>
 
-      <h3>PDF calendar (clickable image)</h3>
-      <p>Link the current month's thumbnail image at
-      <code>{esc(PAGES_BASE)}/pdfs/thumbnails/{{year}}-{{month}}-{esc(menutype)}-{esc(school)}.png</code>
-      to the PDF at <code>{esc(PAGES_BASE)}/pdfs/{{year}}-{{month}}-{esc(menutype)}-{esc(school)}.pdf</code>.</p>
+      <h3>PDF calendar &mdash; "Download" photo for Finalsite</h3>
+      <p>{pdf_photo_note}</p>
+      {pdf_photo_snippet}
+
     </section>""")
 
     body = f"""

@@ -1,3 +1,4 @@
 requests
 reportlab
 pdf2image
+Pillow
