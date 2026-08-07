@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
 SITE = ROOT / "site"
-WIDGET_JS = SITE / "embed" / "menu-widget.js"
+WIDGET_JS = ROOT / "assets" / "embed" / "menu-widget.js"
 OUT_DIR = SITE / "embed" / "finalsite"
 
 

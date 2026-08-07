@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, initial-scale=1">
+<title>Poland Schools Menu Display</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset & base ─────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:      #07194a;
+    --navy-mid:  #0d2870;
+    --navy-card: #0f2f82;
+    --gold:      #f5a623;
+    --gold-dim:  #c47d0d;
+    --white:     #ffffff;
+    --off-white: #d6e4ff;
+    --gray:      #7a9cc6;
+    --red:       #e84141;
+
+    --col: 5;
+    --gap: 14px;
+    --radius: 14px;
+    --header-h: 130px;
+  }
+
+  html, body {
+    width: 1920px; height: 1080px;
+    overflow: hidden;
+    background: var(--navy);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--white);
+  }
+
+  /* ── Noise texture overlay ────────────────────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+
+  /* ── Floating food emojis (background) ───────────────────────────── */
+  #floaters {
+    position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    overflow: hidden;
+  }
+  .floater {
+    position: absolute;
+    font-size: 2.4rem;
+    opacity: 0;
+    animation: float linear infinite;
+    filter: blur(0.5px);
+    user-select: none;
+  }
+  @keyframes float {
+    0%   { transform: translateY(100vh) rotate(0deg);   opacity: 0; }
+    5%   { opacity: 0.12; }
+    95%  { opacity: 0.12; }
+    100% { transform: translateY(-120px) rotate(360deg); opacity: 0; }
+  }
+
+  /* ── Main layout wrapper ──────────────────────────────────────────── */
+  #app {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column;
+    width: 1920px; height: 1080px;
+    padding: 24px 30px 20px;
+    gap: 16px;
+  }
+
+  /* ── Header ───────────────────────────────────────────────────────── */
+  #header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--header-h);
+    background: linear-gradient(135deg, var(--navy-mid) 0%, #142f8a 100%);
+    border-radius: var(--radius);
+    padding: 0 40px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 4px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Gold stripe accent */
+  #header::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 6px;
+    background: var(--gold);
+    border-radius: var(--radius) 0 0 var(--radius);
+  }
+
+  #header-left { display: flex; flex-direction: column; gap: 4px; }
+
+  #meal-type {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 72px;
+    line-height: 1;
+    letter-spacing: 4px;
+    color: var(--white);
+    text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+  }
+
+  #school-name {
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--gold);
+    letter-spacing: 1px;
+  }
+
+  #header-center {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 6px;
+  }
+
+  #week-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--off-white);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  #week-dates {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 44px;
+    letter-spacing: 3px;
+    color: var(--white);
+  }
+
+  #header-right {
+    display: flex; flex-direction: column;
+    align-items: flex-end; gap: 8px;
+  }
+
+  #clock {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-shadow: 0 0 20px rgba(245,166,35,0.4);
+  }
+
+  #date-display {
+    font-size: 16px; font-weight: 400;
+    color: var(--off-white); opacity: 0.7;
+  }
+
+  /* ── Day columns grid ─────────────────────────────────────────────── */
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(var(--col), 1fr);
+    gap: var(--gap);
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ── Single day card ──────────────────────────────────────────────── */
+  .day-card {
+    background: linear-gradient(160deg, #0f2f82 0%, #091e5a 100%);
+    border-radius: var(--radius);
+    border: 1px solid rgba(255,255,255,0.09);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    animation: cardIn 0.6s cubic-bezier(.16,1,.3,1) both;
+    transition: transform 0.2s;
+  }
+  .day-card:nth-child(1) { animation-delay: 0.05s; }
+  .day-card:nth-child(2) { animation-delay: 0.12s; }
+  .day-card:nth-child(3) { animation-delay: 0.19s; }
+  .day-card:nth-child(4) { animation-delay: 0.26s; }
+  .day-card:nth-child(5) { animation-delay: 0.33s; }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(24px) scale(0.97); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .day-card.today {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px var(--gold), 0 8px 32px rgba(245,166,35,0.25);
+  }
+
+  /* Day header bar */
+  .day-header {
+    padding: 14px 18px 12px;
+    background: rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    display: flex; align-items: baseline; justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .day-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    letter-spacing: 1px;
+    color: var(--white);
+  }
+
+  .day-card.today .day-name { color: var(--gold); }
+
+  .day-date {
+    font-size: 30px; font-weight: 500;
+    color: var(--gray);
+  }
+
+  .today-badge {
+    display: none;
+    font-size: 20px; font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--navy);
+    background: var(--gold);
+    padding: 2px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+  .day-card.today .today-badge { display: block; }
+  .day-card.today .day-date    { display: none; }
+
+  /* Items list */
+  .day-items {
+    padding: 14px 18px;
+    display: flex; flex-direction: column; gap: 37px;
+    flex: 1; overflow: hidden;
+  }
+
+  .menu-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    animation: itemIn 0.4s ease both;
+  }
+  @keyframes itemIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .item-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+    margin-top: 22px;
+    opacity: 0.7;
+  }
+
+  .item-text {
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1.35;
+    color: var(--white);
+  }
+
+  .day-card.today .item-text { color: var(--white); }
+
+  .no-menu {
+    font-size: 35px;
+    color: var(--gray);
+    font-style: italic;
+    opacity: 0.6;
+    margin-top: 8px;
+  }
+
+  /* ── Ticker bar ───────────────────────────────────────────────────── */
+  #ticker-wrap {
+    height: 38px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.07);
+    overflow: hidden;
+    display: flex; align-items: center;
+    flex-shrink: 0;
+  }
+
+  #ticker-label {
+    background: var(--gold);
+    color: var(--navy);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 0 16px;
+    height: 100%;
+    display: flex; align-items: center;
+    flex-shrink: 0;
+  }
+
+  #ticker-track {
+    flex: 1; overflow: hidden; position: relative;
+  }
+
+  #ticker-inner {
+    display: inline-flex; gap: 60px;
+    white-space: nowrap;
+    animation: ticker 40s linear infinite;
+    font-size: 14px;
+    color: var(--off-white);
+    opacity: 0.7;
+    padding-left: 30px;
+  }
+
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* ── Error state ──────────────────────────────────────────────────── */
+  #error-msg {
+    display: none;
+    position: fixed; inset: 0; z-index: 99;
+    background: var(--navy);
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    color: var(--red);
+    letter-spacing: 3px;
+  }
+  #error-msg p { font-family: 'DM Sans'; font-size: 18px; color: var(--gray); }
+
+  /* ── Loading state ────────────────────────────────────────────────── */
+  #loading {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 20px;
+  }
+  #loading .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 60px;
+    letter-spacing: 6px;
+    color: var(--white);
+  }
+  #loading .logo span { color: var(--gold); }
+  .spinner {
+    width: 48px; height: 48px;
+    border: 4px solid rgba(255,255,255,0.1);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div id="loading">
+  <div class="logo">Poland <span>Schools</span></div>
+  <div class="spinner"></div>
+</div>
+
+<!-- Error overlay -->
+<div id="error-msg">
+  <div>⚠ Menu Unavailable</div>
+  <p id="error-detail">Could not load menu data.</p>
+</div>
+
+<!-- Floating food emojis -->
+<div id="floaters"></div>
+
+<!-- Main app -->
+<div id="app">
+  <div id="header">
+    <div id="header-left">
+      <div id="meal-type">—</div>
+      <div id="school-name">—</div>
+    </div>
+    <div id="header-center">
+      <div id="week-label">Week of</div>
+      <div id="week-dates">—</div>
+    </div>
+    <div id="header-right">
+      <div id="clock">00:00</div>
+      <div id="date-display">—</div>
+    </div>
+  </div>
+
+  <div id="grid"></div>
+
+  <div id="ticker-wrap">
+    <div id="ticker-label">📋 Menu Note</div>
+    <div id="ticker-track">
+      <div id="ticker-inner"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────
+
+const FOOD_EMOJIS = ['🍕','🥞','🍎','🥐','🧀','🥛','🍊','🥨','🍌','🥯',
+                     '🍇','🥗','🍱','🧁','🍓','🥕','🌽','🍒','🥦','🍋'];
+
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+
+const TICKER_MSGS = [
+  "Menus subject to change without notice",
+  "Students must choose at least 3 to 5 meal components",
+  "Choice of meat or meat alternate  •  Choice of vegetable  •  Choice of fruit  •  Choice of grain/bread  •  Choice of milk",
+  "USDA is an equal opportunity provider, employer, and lender",
+  "Poland Local School District  •  Food Service Department",
+];
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+
+const qs = (s) => document.querySelector(s);
+
+function getParams() {
+  const p = new URLSearchParams(window.location.search);
+  return {
+    school:   p.get('school')   || 'pshs',
+    type:     p.get('type')     || 'breakfast',
+  };
+}
+
+function getMonday(d) {
+  const day = new Date(d);
+  const diff = (day.getDay() + 6) % 7;
+  day.setDate(day.getDate() - diff);
+  day.setHours(0,0,0,0);
+  return day;
+}
+
+function fmtDate(d) {
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+
+function fmtDateFull(d) {
+  return d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+}
+
+function dateKey(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+// ── Floaters ──────────────────────────────────────────────────────────────
+
+function spawnFloaters() {
+  const wrap = qs('#floaters');
+  for (let i = 0; i < 22; i++) {
+    const el = document.createElement('div');
+    el.className = 'floater';
+    el.textContent = FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.animationDuration = (18 + Math.random() * 22) + 's';
+    el.style.animationDelay   = -(Math.random() * 30) + 's';
+    el.style.fontSize = (1.6 + Math.random() * 2) + 'rem';
+    wrap.appendChild(el);
+  }
+}
+
+// ── Clock ─────────────────────────────────────────────────────────────────
+
+function startClock() {
+  function tick() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    qs('#clock').textContent = `${h}:${m}`;
+    qs('#date-display').textContent = fmtDateFull(now);
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+// ── Ticker ────────────────────────────────────────────────────────────────
+
+function buildTicker(items) {
+  const msgs = [...TICKER_MSGS, ...items.slice(0,8).map(i => `Today's menu includes: ${i}`)];
+  const doubled = [...msgs, ...msgs].join('   •   ');
+  const inner = qs('#ticker-inner');
+  inner.textContent = doubled;
+}
+
+// ── Data loading ──────────────────────────────────────────────────────────
+
+async function loadData(school, type) {
+  const filename = `${type}-${school}.json`;
+  const url = `https://raw.githubusercontent.com/nruggieri-poland/menus/refs/heads/master/data/${filename}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status} for ${url}`);
+  return resp.json();
+}
+
+function buildItemMap(data) {
+  const map = {};
+  for (const day of data.days || []) {
+    map[day.date] = day.items;
+  }
+  return map;
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+
+function renderWeek(itemMap, monday, schoolDisplay, type) {
+  const todayKey = dateKey(new Date());
+
+  // Header
+  const friday = new Date(monday);
+  friday.setDate(friday.getDate() + 4);
+  qs('#meal-type').textContent = type.charAt(0).toUpperCase() + type.slice(1);
+  qs('#school-name').textContent = schoolDisplay;
+  qs('#week-dates').textContent  = `${fmtDate(monday)} – ${fmtDate(friday)}`;
+
+  // Grid
+  const grid = qs('#grid');
+  grid.innerHTML = '';
+
+  let allItems = [];
+
+  DAYS.forEach((dayName, i) => {
+    const d = new Date(monday);
+    d.setDate(d.getDate() + i);
+    const key = dateKey(d);
+    const items = itemMap[key] || [];
+    allItems = allItems.concat(items);
+
+    const isToday = key === todayKey;
+
+    const card = document.createElement('div');
+    card.className = 'day-card' + (isToday ? ' today' : '');
+
+    const header = document.createElement('div');
+    header.className = 'day-header';
+    header.innerHTML = `
+      <span class="day-name">${dayName}</span>
+      <span class="day-date">${fmtDate(d)}</span>
+      <span class="today-badge">Today</span>
+    `;
+    card.appendChild(header);
+
+    const itemsEl = document.createElement('div');
+    itemsEl.className = 'day-items';
+
+    if (items.length === 0) {
+      itemsEl.innerHTML = '<div class="no-menu">No menu available</div>';
+    } else {
+      items.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = 'menu-item';
+        row.style.animationDelay = (0.08 * idx) + 's';
+        row.innerHTML = `<div class="item-dot"></div><div class="item-text">${item}</div>`;
+        itemsEl.appendChild(row);
+      });
+    }
+
+    card.appendChild(itemsEl);
+    grid.appendChild(card);
+  });
+
+  buildTicker(allItems);
+}
+
+// ── School display names ──────────────────────────────────────────────────
+
+const SCHOOL_NAMES = {
+  'pshs':            'Poland Seminary High School',
+  'mckinley-middle': 'McKinley Middle School',
+};
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+
+async function boot() {
+  spawnFloaters();
+  startClock();
+
+  const { school, type } = getParams();
+  const schoolDisplay = SCHOOL_NAMES[school] || school;
+
+  const today    = new Date();
+  const monday   = getMonday(today);
+
+  let itemMap = {};
+  try {
+    const data = await loadData(school, type);
+    itemMap = buildItemMap(data);
+  } catch(e) {
+    console.warn('Menu data load failed:', e);
+  }
+
+  if (Object.keys(itemMap).length === 0) {
+    qs('#loading').style.display    = 'none';
+    qs('#error-msg').style.display  = 'flex';
+    qs('#error-detail').textContent = `No data found for ${school} / ${type}`;
+    return;
+  }
+
+  renderWeek(itemMap, monday, schoolDisplay, type);
+
+  qs('#loading').style.display = 'none';
+
+  // Auto-refresh at midnight to flip to next week
+  const msUntilMidnight = new Date().setHours(24,0,5,0) - Date.now();
+  setTimeout(() => location.reload(), msUntilMidnight);
+}
+
+boot().catch(err => {
+  console.error(err);
+  qs('#loading').style.display   = 'none';
+  qs('#error-msg').style.display = 'flex';
+  qs('#error-detail').textContent = err.message;
+});
+</script>
+</body>
+</html>

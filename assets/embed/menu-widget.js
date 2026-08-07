@@ -1,0 +1,367 @@
+/*
+ * menu-widget.js — Poland Schools menu embed
+ *
+ * Drop this into any page (e.g. a Finalsite "Custom HTML" block):
+ *
+ *   <div data-psmenu data-school="pshs" data-menutype="lunch"></div>
+ *   <script src="https://nruggieri-poland.github.io/menus/embed/menu-widget.js" defer></script>
+ *
+ * Multiple <div data-psmenu ...> blocks on one page share a single script
+ * tag. Each feed is fetched as ONE rollup JSON file (data/{menutype}-{school}.json,
+ * the whole available history, not split by month) straight from this repo
+ * on page load, cached for the life of the page — so it's always current, no
+ * iframe involved (works even where a host CSP blocks frame-src), no
+ * rebuild/re-paste needed, and month/week navigation after the first load is
+ * instant with zero extra network requests.
+ *
+ * Optional attributes:
+ *   data-view="calendar" | "week"   (default: "calendar")
+ *   data-display-name="..."         (overrides the built-in school name lookup)
+ */
+(function () {
+  'use strict';
+
+  var REPO_DATA_BASE = 'https://raw.githubusercontent.com/nruggieri-poland/menus/refs/heads/master/data/';
+
+  var DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  var MONTH_NAMES = ['', 'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  var SCHOOL_NAMES = {
+    'pshs': 'Poland Seminary High School',
+    'mckinley-middle': 'McKinley Middle School'
+  };
+
+  // ── Helpers ────────────────────────────────────────────────────────────
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function dateKey(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+
+  function sameDay(a, b) { return dateKey(a) === dateKey(b); }
+
+  function addDays(d, n) { var r = new Date(d); r.setDate(r.getDate() + n); return r; }
+
+  function getMonday(d) {
+    var day = new Date(d);
+    var diff = (day.getDay() + 6) % 7;
+    day.setDate(day.getDate() - diff);
+    day.setHours(0, 0, 0, 0);
+    return day;
+  }
+
+  function fmtDate(d) {
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function fmtDateFull(d) {
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }
+
+  function fmtDateLong(d) {
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  }
+
+  function daysInMonth(year, month) { return new Date(year, month, 0).getDate(); }
+
+  // ── Data fetch: one rollup file per feed, shared across all widget
+  // instances on the page and cached for the page's lifetime ──────────────
+
+  var rollupCache = {};
+
+  function fetchRollup(school, menutype) {
+    var key = school + '/' + menutype;
+    if (rollupCache[key]) return rollupCache[key];
+    var filename = menutype + '-' + school + '.json';
+    rollupCache[key] = fetch(REPO_DATA_BASE + filename)
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (data) {
+        var itemMap = {};
+        (data.days || []).forEach(function (d) { itemMap[d.date] = d.items; });
+        return itemMap;
+      })
+      .catch(function () { return null; });
+    return rollupCache[key];
+  }
+
+  // ── Stylesheet (injected once, scoped under .psmenu) ─────────────────────
+
+  var CSS = ''
+    + '.psmenu{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#1a1a2e;background:#fff;line-height:1.5;}'
+    + '.psmenu *,.psmenu *::before,.psmenu *::after{box-sizing:border-box;}'
+    + '.psmenu a{color:#0d2870;}'
+    + '.psmenu .psmenu-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}'
+    + '.psmenu .psmenu-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.75rem 1rem;padding-bottom:.5rem;}'
+    + '.psmenu .psmenu-eyebrow{font-size:.8rem;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin:0 0 .2rem;}'
+    + '.psmenu .psmenu-head h2{color:#1a3e9c;font-size:clamp(1.3rem,4vw,1.8rem);margin:0;line-height:1.2;}'
+    + '.psmenu .psmenu-nav{display:flex;gap:.5rem;flex-shrink:0;align-items:center;flex-wrap:wrap;}'
+    + '.psmenu .psmenu-nav button{background:#2d3748;color:#fff;border:0;border-radius:8px;padding:.55rem .95rem;font-size:.85rem;font-weight:600;cursor:pointer;min-height:44px;min-width:44px;}'
+    + '.psmenu .psmenu-nav button:hover{background:#1c2536;}'
+    + '.psmenu .psmenu-nav button:disabled{opacity:.4;cursor:default;}'
+    + '.psmenu .psmenu-nav button:focus-visible{outline:3px solid #0b57d0;outline-offset:2px;}'
+    + '.psmenu .psmenu-print{background:none !important;color:#0d2870 !important;text-decoration:underline;font-weight:400 !important;}'
+    + '.psmenu .psmenu-daylist{border:1px solid #d8dee9;border-radius:10px;overflow:hidden;}'
+    + '.psmenu .psmenu-day + .psmenu-day{border-top:1px solid #d8dee9;}'
+    + '.psmenu .psmenu-day-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:.35rem .75rem;background:#eef0f2;padding:.7rem 1.25rem;}'
+    + '.psmenu .psmenu-day.today .psmenu-day-head{background:#dce6fb;}'
+    + '.psmenu .psmenu-day-head h3{font-size:1.05rem;color:#1a3e9c;margin:0;display:inline-flex;align-items:center;gap:.5rem;font-weight:700;}'
+    + '.psmenu .psmenu-day-head .psmenu-date{font-weight:700;color:#1a3e9c;font-size:1rem;}'
+    + '.psmenu .psmenu-flag{font-size:.65rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#3d2a00;background:#f5a623;padding:.15rem .5rem;border-radius:999px;}'
+    + '.psmenu .psmenu-day-body{padding:1rem 1.25rem 1.25rem;background:#fff;}'
+    + '.psmenu ul.psmenu-items{list-style:none;margin:0;padding:0;}'
+    + '.psmenu ul.psmenu-items li{padding-left:1.1rem;position:relative;margin-bottom:.4rem;color:#333;}'
+    + '.psmenu ul.psmenu-items li:first-child::before{content:"";position:absolute;left:0;top:.55em;width:8px;height:8px;border-radius:50%;background:#1a3e9c;}'
+    + '.psmenu .psmenu-no-menu{color:#475569;font-style:italic;margin:0;}'
+    + '.psmenu .psmenu-toggle{display:flex;justify-content:center;margin-top:1.25rem;}'
+    + '.psmenu .psmenu-toggle button{background:#1a3e9c;color:#fff;border:0;padding:.65rem 1.5rem;border-radius:8px;font-weight:600;cursor:pointer;min-height:44px;}'
+    + '.psmenu .psmenu-toggle button:hover{background:#0d2870;}'
+    + '.psmenu table.psmenu-cal{border-collapse:collapse;width:100%;margin-top:.5rem;table-layout:fixed;}'
+    + '.psmenu table.psmenu-cal caption{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}'
+    + '.psmenu table.psmenu-cal th,.psmenu table.psmenu-cal td{border:1px solid #d8dee9;vertical-align:top;padding:.5rem;}'
+    + '.psmenu table.psmenu-cal thead th{background:#1a3e9c;color:#fff;text-align:center;padding:.6rem;font-size:.9rem;}'
+    + '.psmenu table.psmenu-cal td{width:20%;}'
+    + '.psmenu table.psmenu-cal td.psmenu-empty{background:#f2f4f8;}'
+    + '.psmenu .psmenu-daynum{font-weight:700;color:#1a3e9c;display:block;text-align:right;margin-bottom:.3rem;font-size:.85rem;}'
+    + '.psmenu table.psmenu-cal ul{list-style:none;margin:0;padding:0;font-size:.8rem;}'
+    + '.psmenu table.psmenu-cal ul li{margin-bottom:.25rem;color:#333;}'
+    + '.psmenu .psmenu-status{padding:2rem 1rem;text-align:center;color:#475569;}'
+    + '@media (max-width:700px){'
+    + '.psmenu table.psmenu-cal thead{position:absolute;left:-9999px;top:-9999px;}'
+    + '.psmenu table.psmenu-cal,.psmenu table.psmenu-cal tbody,.psmenu table.psmenu-cal tr,.psmenu table.psmenu-cal td{display:block;width:100%;}'
+    + '.psmenu table.psmenu-cal tr{margin-bottom:1rem;border:1px solid #d8dee9;border-radius:8px;overflow:hidden;}'
+    + '.psmenu table.psmenu-cal td{border:none;border-bottom:1px solid #d8dee9;}'
+    + '.psmenu table.psmenu-cal td:last-child{border-bottom:none;}'
+    + '.psmenu table.psmenu-cal td.psmenu-empty{display:none;}'
+    + '.psmenu table.psmenu-cal td::before{content:attr(data-day);font-weight:700;color:#1a3e9c;display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;}'
+    + '.psmenu .psmenu-daynum{text-align:left;}'
+    + '}'
+    + '@media print{.psmenu .psmenu-nav,.psmenu .psmenu-toggle{display:none !important;}}';
+
+  function injectStyleOnce() {
+    if (document.getElementById('psmenu-style')) return;
+    var style = document.createElement('style');
+    style.id = 'psmenu-style';
+    style.textContent = CSS;
+    document.head.appendChild(style);
+  }
+
+  // ── Widget ────────────────────────────────────────────────────────────
+
+  function Widget(el) {
+    this.el = el;
+    this.school = el.getAttribute('data-school');
+    this.menutype = el.getAttribute('data-menutype');
+    this.displayName = el.getAttribute('data-display-name') || SCHOOL_NAMES[this.school] || this.school;
+    this.view = el.getAttribute('data-view') === 'week' ? 'week' : 'calendar';
+    var today = new Date();
+    this.year = today.getFullYear();
+    this.month = today.getMonth() + 1;
+    this.monday = getMonday(today);
+  }
+
+  Widget.prototype.init = function () {
+    injectStyleOnce();
+    this.el.classList.add('psmenu');
+    this.el.setAttribute('aria-live', 'polite');
+    if (!this.school || !this.menutype) {
+      this.el.innerHTML = '<p class="psmenu-status">Menu embed is missing data-school / data-menutype.</p>';
+      return;
+    }
+    this.render();
+  };
+
+  Widget.prototype.getItemMap = function () {
+    return fetchRollup(this.school, this.menutype);
+  };
+
+  Widget.prototype.render = function () {
+    this.el.innerHTML = '<p class="psmenu-status">Loading menu&hellip;</p>';
+    if (this.view === 'calendar') this.renderCalendar();
+    else this.renderWeek();
+  };
+
+  // ── Month / calendar view ────────────────────────────────────────────
+
+  Widget.prototype.renderCalendar = function () {
+    var self = this;
+    this.getItemMap().then(function (itemMap) {
+      self.el.innerHTML = self.buildCalendarHTML(itemMap, self.year, self.month);
+      self.bindCalendarNav();
+    });
+  };
+
+  Widget.prototype.buildCalendarHTML = function (itemMap, year, month) {
+    var fetchFailed = itemMap === null;
+    itemMap = itemMap || {};
+
+    var first = new Date(year, month - 1, 1);
+    var numDays = daysInMonth(year, month);
+    var weekStart = getMonday(first);
+
+    var weeks = [];
+    var cur = new Date(weekStart);
+    var lastOfMonth = new Date(year, month - 1, numDays);
+    while (cur <= lastOfMonth) {
+      var week = [];
+      for (var i = 0; i < 5; i++) {
+        var d = addDays(cur, i);
+        week.push(d.getMonth() === month - 1 ? d : null);
+      }
+      weeks.push(week);
+      cur = addDays(cur, 7);
+    }
+
+    var headerCells = DAYS.map(function (d) { return '<th scope="col">' + d + '</th>'; }).join('');
+
+    var rowsHtml = weeks.map(function (week) {
+      var cells = week.map(function (d, i) {
+        var dayName = DAYS[i];
+        if (!d) return '<td class="psmenu-empty" data-day="' + esc(dayName) + '"></td>';
+        var key = dateKey(d);
+        var items = itemMap[key] || [];
+        var itemsHtml = items.length
+          ? '<ul class="psmenu-items">' + items.map(function (it) { return '<li>' + esc(it) + '</li>'; }).join('') + '</ul>'
+          : '<p class="psmenu-no-menu">No menu</p>';
+        return '<td data-day="' + esc(dayName) + '">'
+          + '<span class="psmenu-sr-only">' + esc(fmtDateLong(d)) + ': </span>'
+          + '<span class="psmenu-daynum" aria-hidden="true">' + d.getDate() + '</span>'
+          + itemsHtml + '</td>';
+      }).join('');
+      return '<tr>' + cells + '</tr>';
+    }).join('');
+
+    var monthLabel = MONTH_NAMES[month] + ' ' + year;
+    var noDataNote = fetchFailed
+      ? '<p class="psmenu-status">Sorry, the menu couldn&rsquo;t be loaded right now. Please try again later.</p>'
+      : '';
+
+    return ''
+      + '<div class="psmenu-head">'
+      + '<div><p class="psmenu-eyebrow">' + esc(this.displayName) + ' &middot; ' + esc(cap(this.menutype)) + '</p>'
+      + '<h2>' + esc(monthLabel) + '</h2></div>'
+      + '<nav class="psmenu-nav" aria-label="Month navigation">'
+      + '<button type="button" data-nav="today">Today</button>'
+      + '<button type="button" data-nav="prev" aria-label="Previous month">&larr;</button>'
+      + '<button type="button" data-nav="next" aria-label="Next month">&rarr;</button>'
+      + '<button type="button" data-nav="print" class="psmenu-print">Print</button>'
+      + '</nav></div>'
+      + noDataNote
+      + '<table class="psmenu-cal"><caption>' + esc(cap(this.menutype)) + ' menu &mdash; ' + esc(this.displayName) + ' &mdash; ' + esc(monthLabel) + '</caption>'
+      + '<thead><tr>' + headerCells + '</tr></thead><tbody>' + rowsHtml + '</tbody></table>'
+      + '<div class="psmenu-toggle"><button type="button" data-nav="list">List View</button></div>';
+  };
+
+  Widget.prototype.bindCalendarNav = function () {
+    var self = this;
+    bindNav(this.el, {
+      prev: function () { self.shiftMonth(-1); },
+      next: function () { self.shiftMonth(1); },
+      today: function () { var t = new Date(); self.year = t.getFullYear(); self.month = t.getMonth() + 1; self.render(); },
+      print: function () { window.print(); },
+      list: function () { self.view = 'week'; self.render(); }
+    });
+  };
+
+  Widget.prototype.shiftMonth = function (delta) {
+    var m = this.month + delta, y = this.year;
+    if (m < 1) { m = 12; y -= 1; }
+    if (m > 12) { m = 1; y += 1; }
+    this.year = y; this.month = m;
+    this.render();
+  };
+
+  // ── Week / list view ──────────────────────────────────────────────────
+
+  Widget.prototype.renderWeek = function () {
+    var self = this;
+    this.getItemMap().then(function (itemMap) {
+      self.el.innerHTML = self.buildWeekHTML(itemMap, self.monday);
+      self.bindWeekNav();
+    });
+  };
+
+  Widget.prototype.buildWeekHTML = function (itemMap, monday) {
+    var fetchFailed = itemMap === null;
+    itemMap = itemMap || {};
+    var today = new Date();
+    var friday = addDays(monday, 4);
+
+    var rows = DAYS.map(function (dayName, i) {
+      var d = addDays(monday, i);
+      var key = dateKey(d);
+      var items = itemMap[key] || [];
+      var isToday = sameDay(d, today);
+      var flag = isToday ? '<span class="psmenu-flag">Today</span>' : '';
+      var itemsHtml = items.length
+        ? '<ul class="psmenu-items">' + items.map(function (it) { return '<li>' + esc(it) + '</li>'; }).join('') + '</ul>'
+        : '<p class="psmenu-no-menu">No menu available</p>';
+      return '<div class="psmenu-day' + (isToday ? ' today' : '') + '">'
+        + '<div class="psmenu-day-head"><h3>' + esc(dayName) + flag + '</h3>'
+        + '<span class="psmenu-date">' + esc(fmtDateFull(d)) + '</span></div>'
+        + '<div class="psmenu-day-body">' + itemsHtml + '</div></div>';
+    }).join('');
+
+    var noDataNote = fetchFailed
+      ? '<p class="psmenu-status">Sorry, the menu couldn&rsquo;t be loaded right now. Please try again later.</p>'
+      : '';
+
+    return ''
+      + '<div class="psmenu-head">'
+      + '<div><p class="psmenu-eyebrow">' + esc(this.displayName) + ' &middot; ' + esc(cap(this.menutype)) + '</p>'
+      + '<h2>' + esc(fmtDate(monday)) + ' &ndash; ' + esc(fmtDate(friday)) + ', ' + monday.getFullYear() + '</h2></div>'
+      + '<nav class="psmenu-nav" aria-label="Week navigation">'
+      + '<button type="button" data-nav="today">Today</button>'
+      + '<button type="button" data-nav="prev" aria-label="Previous week">&larr;</button>'
+      + '<button type="button" data-nav="next" aria-label="Next week">&rarr;</button>'
+      + '<button type="button" data-nav="print" class="psmenu-print">Print</button>'
+      + '</nav></div>'
+      + noDataNote
+      + '<div class="psmenu-daylist">' + rows + '</div>'
+      + '<div class="psmenu-toggle"><button type="button" data-nav="month">Month View</button></div>';
+  };
+
+  Widget.prototype.bindWeekNav = function () {
+    var self = this;
+    bindNav(this.el, {
+      prev: function () { self.monday = addDays(self.monday, -7); self.render(); },
+      next: function () { self.monday = addDays(self.monday, 7); self.render(); },
+      today: function () { self.monday = getMonday(new Date()); self.render(); },
+      print: function () { window.print(); },
+      month: function () { self.view = 'calendar'; self.render(); }
+    });
+  };
+
+  // ── Shared nav wiring ─────────────────────────────────────────────────
+
+  function bindNav(root, handlers) {
+    Object.keys(handlers).forEach(function (key) {
+      var btn = root.querySelector('[data-nav="' + key + '"]');
+      if (btn) btn.addEventListener('click', handlers[key]);
+    });
+  }
+
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  // ── Boot ──────────────────────────────────────────────────────────────
+
+  function boot() {
+    var els = document.querySelectorAll('[data-psmenu]');
+    for (var i = 0; i < els.length; i++) {
+      if (!els[i].hasAttribute('data-psmenu-init')) {
+        els[i].setAttribute('data-psmenu-init', 'true');
+        new Widget(els[i]).init();
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();

@@ -1,19 +1,38 @@
 """
 build_site.py
-Copies data JSON files into the site/ directory so the static TV display
-pages can fetch them with a relative path (no CORS issues on GitHub Pages).
-Also regenerates the per-school/per-mealtype index HTML stubs if needed.
+site/ is pure build output (gitignored, regenerated every run) — nothing in
+it is hand-edited directly. This script copies the hand-authored static
+assets that DO live under version control (assets/) into site/, copies data
+JSON into site/ so the static TV display pages can fetch them with a
+relative path (no CORS issues on GitHub Pages), and regenerates the
+per-school/per-mealtype TV redirect stubs.
 """
 
 import json
 import shutil
 import csv
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 ROOT   = Path(__file__).parent.parent
 DATA   = ROOT / "data"
 SITE   = ROOT / "site"
+ASSETS = ROOT / "assets"
+
+
+def copy_static_assets():
+    """Hand-authored files that live in assets/ (tracked in git) get copied
+    straight into site/ (untracked, CI-generated) at the same relative path."""
+    if not ASSETS.exists():
+        return
+    count = 0
+    for src in ASSETS.rglob("*"):
+        if src.is_file():
+            dest = SITE / src.relative_to(ASSETS)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dest)
+            count += 1
+    print(f"  Copied {count} static asset(s) from assets/ → site/")
 
 
 def copy_data():
@@ -31,7 +50,7 @@ def copy_data():
 def build_manifest():
     """Write site/data/manifest.json listing all available data files."""
     files = sorted(p.name for p in (SITE / "data").glob("*.json"))
-    manifest = {"files": files, "updated": datetime.utcnow().isoformat() + "Z"}
+    manifest = {"files": files, "updated": datetime.now(timezone.utc).isoformat()}
     out = SITE / "data" / "manifest.json"
     with open(out, "w") as f:
         json.dump(manifest, f, indent=2)
@@ -59,6 +78,7 @@ def ensure_tv_pages():
 
 
 if __name__ == "__main__":
+    copy_static_assets()
     copy_data()
     build_manifest()
     ensure_tv_pages()
