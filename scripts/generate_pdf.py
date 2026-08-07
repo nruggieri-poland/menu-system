@@ -443,36 +443,48 @@ def draw_page(c: canvas.Canvas, data: dict, year: int, month: int,
 # Entry point
 # ---------------------------------------------------------------------------
 
-def generate_all(year: int, month: int):
+def generate_all(months: list[tuple[int, int]]):
     import csv
 
     csv_path = Path(__file__).parent / "menu-list.csv"
     with open(csv_path, newline="") as f:
         rows = list(csv.DictReader(f))
 
-    for row in rows:
-        school       = row["school"].strip()
-        display_name = row["display_name"].strip()
-        menutype     = row["menutype"].strip()
+    for year, month in months:
+        for row in rows:
+            school       = row["school"].strip()
+            display_name = row["display_name"].strip()
+            menutype     = row["menutype"].strip()
 
-        print(f"\n→ PDF: {display_name} / {menutype}")
-        data = load_rollup(school, menutype)
-        if data is None:
-            continue
+            print(f"\n→ PDF: {display_name} / {menutype} — {MONTH_NAMES[month]} {year}")
+            data = load_rollup(school, menutype)
+            if data is None:
+                continue
 
-        out_path = PDF_DIR / f"{year}-{month:02d}-{menutype}-{school}.pdf"
-        c = canvas.Canvas(str(out_path), pagesize=landscape(letter))
-        draw_page(c, data, year, month, display_name, menutype, school)
-        c.showPage()
-        c.save()
-        print(f"  ✓ {out_path.name}")
+            out_path = PDF_DIR / f"{year}-{month:02d}-{menutype}-{school}.pdf"
+            c = canvas.Canvas(str(out_path), pagesize=landscape(letter))
+            draw_page(c, data, year, month, display_name, menutype, school)
+            c.showPage()
+            c.save()
+            print(f"  ✓ {out_path.name}")
 
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--year",  type=int, default=datetime.now().year)
-    parser.add_argument("--month", type=int, default=datetime.now().month)
+    parser.add_argument("--year",  type=int, help="Single year (requires --month)")
+    parser.add_argument("--month", type=int, help="Single month 1-12 (requires --year)")
     args = parser.parse_args()
-    generate_all(args.year, args.month)
+
+    if args.year and args.month:
+        months = [(args.year, args.month)]
+    else:
+        # Default: current month + next month, so there's always a PDF ready
+        # for the upcoming month before it starts.
+        today = date.today()
+        this_month = (today.year, today.month)
+        next_month = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
+        months = [this_month, next_month]
+
+    generate_all(months)
     print("\n✅ PDFs generated.")
