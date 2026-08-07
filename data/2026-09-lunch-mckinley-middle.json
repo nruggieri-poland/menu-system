@@ -4,6 +4,187 @@
   "menutype": "lunch",
   "year": 2026,
   "month": 9,
-  "generated_at": "2026-08-02T12:13:29.615854Z",
-  "days": []
+  "generated_at": "2026-08-07T02:16:49.375930Z",
+  "days": [
+    {
+      "date": "2026-09-01",
+      "items": [
+        "Walking Taco with Beef, Cheese, Nacho Doritos & Fresh Bread",
+        "Creamy Cucumber Salad",
+        "Seasoned Refried Beans",
+        "Tropical Pineapple Tidbits",
+        "Chicken Nuggets with Fresh Bread"
+      ]
+    },
+    {
+      "date": "2026-09-08",
+      "items": [
+        "Soft Beef & Cheese Tacos",
+        "Fresh Celery Sticks",
+        "Seasoned Refried Beans",
+        "Fresh Petite Banana",
+        "Chicken Nuggets with Fresh Bread"
+      ]
+    },
+    {
+      "date": "2026-09-09",
+      "items": [
+        "Crispy Chicken Nuggets w/ Buttered Noodles",
+        "Fresh Cucumber Slices",
+        "Seasoned Steamed Carrots",
+        "Tropical Pineapple Tidbits",
+        "Crispy Spicy Chicken Patty Sandwich"
+      ]
+    },
+    {
+      "date": "2026-09-10",
+      "items": [
+        "Popcorn Chicken Bowl w/ Fresh Bread",
+        "Fresh Cucumber Slices",
+        "Seasoned Steamed Golden Corn",
+        "Red Delicious Apple",
+        "Grilled Cheese"
+      ]
+    },
+    {
+      "date": "2026-09-11",
+      "items": [
+        "Cheese Pizza",
+        "Fresh Baby Carrots",
+        "Seasoned Steamed Broccoli",
+        "Applesauce",
+        "Corn Dog Nuggets"
+      ]
+    },
+    {
+      "date": "2026-09-14",
+      "items": [
+        "Teriyaki Chicken & Vegetables over Fluffy Rice",
+        "Fresh Baby Carrots",
+        "Seasoned Steamed Mixed Vegetables",
+        "Cinnamon Applesauce",
+        "Breaded Chicken Sandwich"
+      ]
+    },
+    {
+      "date": "2026-09-15",
+      "items": [
+        "Sloppy Nachos",
+        "Fresh Cucumber Slices",
+        "Seasoned Refried Beans",
+        "Tropical Pineapple Tidbits",
+        "Popcorn Smackers"
+      ]
+    },
+    {
+      "date": "2026-09-16",
+      "items": [
+        "Meatball Hoagie",
+        "Fresh Cucumber Slices",
+        "Seasoned Steamed Green Beans",
+        "Golden Delicious Apple",
+        "Corn Dog Nuggets"
+      ]
+    },
+    {
+      "date": "2026-09-17",
+      "items": [
+        "Chicken Breast Tender",
+        "Fresh Baby Carrots",
+        "Baked French Fries",
+        "Raspberry Lemonade Craisins",
+        "Hamburger on Bun"
+      ]
+    },
+    {
+      "date": "2026-09-18",
+      "items": [
+        "Cheese Pizza",
+        "Seasoned Steamed Broccoli",
+        "Fresh Red and Green Peppers",
+        "Citrusy Mandarin Oranges",
+        "Grilled Cheese"
+      ]
+    },
+    {
+      "date": "2026-09-21",
+      "items": [
+        "Chicken Fried Rice",
+        "Fresh Cucumber Slices",
+        "Seasoned Steamed Mixed Vegetables",
+        "Cinnamon Applesauce",
+        "Popcorn Smackers"
+      ]
+    },
+    {
+      "date": "2026-09-22",
+      "items": [
+        "Beef Nachos w/ Cheddar Cheese & Fresh Bread",
+        "Fresh Baby Carrots",
+        "Seasoned Refried Beans",
+        "Citrusy Mandarin Oranges",
+        "Corn Dog Nuggets"
+      ]
+    },
+    {
+      "date": "2026-09-23",
+      "items": [
+        "Bosco Sticks w/Dipping Sauce",
+        "Seasoned Steamed Green Beans",
+        "Fresh Red and Green Peppers",
+        "Tropical Pineapple Tidbits",
+        "Chicken Nuggets with Fresh Bread"
+      ]
+    },
+    {
+      "date": "2026-09-24",
+      "items": [
+        "Bacon Cheeseburger",
+        "Fresh Baby Carrots",
+        "Baked French Fries",
+        "Blue Raspberry Applesauce",
+        "Breaded Chicken Sandwich"
+      ]
+    },
+    {
+      "date": "2026-09-25",
+      "items": [
+        "Cheese Pizza",
+        "Fresh Cucumber Slices",
+        "Seasoned Steamed Broccoli",
+        "Fresh Petite Banana",
+        "Corn Dog Nuggets"
+      ]
+    },
+    {
+      "date": "2026-09-28",
+      "items": [
+        "Buffalo Chicken Dipper w/ Garlic Toast",
+        "Fresh Cucumber Slices",
+        "Oven Roasted Carrots",
+        "Citrusy Mandarin Oranges",
+        "Cheeseburger on a Bun"
+      ]
+    },
+    {
+      "date": "2026-09-29",
+      "items": [
+        "Chicken Burrito Bowl",
+        "Fresh Baby Carrots",
+        "Seasoned Refried Beans",
+        "Strawberry Banana Applesauce",
+        "Popcorn Smackers"
+      ]
+    },
+    {
+      "date": "2026-09-30",
+      "items": [
+        "Corn Dog",
+        "Baked French Fries",
+        "Cucumbers",
+        "Fruit Punch Craisins",
+        "Corn Dog Nuggets"
+      ]
+    }
+  ]
 }

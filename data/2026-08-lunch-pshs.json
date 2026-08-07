@@ -4,6 +4,62 @@
   "menutype": "lunch",
   "year": 2026,
   "month": 8,
-  "generated_at": "2026-08-02T12:07:43.078134Z",
-  "days": []
+  "generated_at": "2026-08-07T02:15:59.047141Z",
+  "days": [
+    {
+      "date": "2026-08-25",
+      "items": [
+        "Beef & Cheese Nachos",
+        "Seasoned Refried Beans",
+        "Fresh Baby Carrots",
+        "Citrusy Mandarin Oranges",
+        "Fresh Petite Banana",
+        "Cheeseburger on a Bun"
+      ]
+    },
+    {
+      "date": "2026-08-26",
+      "items": [
+        "Popcorn Chicken Bowl w/ Fresh Bread",
+        "Oven Roasted Carrots",
+        "Cucumbers",
+        "Red Delicious Apple",
+        "Tropical Pineapple Tidbits",
+        "Chicken Nuggets"
+      ]
+    },
+    {
+      "date": "2026-08-27",
+      "items": [
+        "Freshly Baked Italian Dunkers",
+        "Seasoned Steamed Green Beans",
+        "Carrot & Raisin Salad",
+        "Golden Delicious Apple",
+        "Applesauce",
+        "Crispy Spicy Chicken Patty Sandwich"
+      ]
+    },
+    {
+      "date": "2026-08-28",
+      "items": [
+        "Honey Hot Chicken Pizza",
+        "Fresh Baby Carrots",
+        "Seasoned Steamed Golden Corn",
+        "Fresh Petite Banana",
+        "Strawberry Applesauce",
+        "Corn Dog"
+      ]
+    },
+    {
+      "date": "2026-08-31",
+      "items": [
+        "Bosco Sticks w/Dipping Sauce",
+        "Fresh Red and Green Peppers",
+        "Seasoned Steamed Mixed Vegetables",
+        "Cinnamon Applesauce",
+        "Fresh Petite Banana",
+        "Crispy Spicy Chicken Patty Sandwich"
+      ]
+    }
+  ]
 }
