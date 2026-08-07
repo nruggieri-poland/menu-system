@@ -106,8 +106,10 @@
     + '.psmenu *,.psmenu *::before,.psmenu *::after{box-sizing:border-box;}'
     + '.psmenu a{color:#0d2870;}'
     + '.psmenu .psmenu-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}'
-    + '.psmenu .psmenu-announce:focus{position:static;width:auto;height:auto;margin:0 0 .5rem;padding:.4rem .6rem;overflow:visible;clip:auto;white-space:normal;display:block;background:#eef0f2;color:#1a3e9c;font-size:.85rem;font-weight:600;border-radius:6px;outline:3px solid #0b57d0;outline-offset:2px;}'
-    + '.psmenu .psmenu-nav{display:flex;justify-content:flex-end;gap:.5rem;width:100%;align-items:center;flex-wrap:wrap;padding-bottom:.75rem;}'
+    + '.psmenu .psmenu-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem 1rem;padding-bottom:.75rem;}'
+    + '.psmenu .psmenu-announce{color:#1a3e9c;font-size:1.5rem;font-weight:700;margin:0;}'
+    + '.psmenu .psmenu-announce:focus-visible{outline:3px solid #0b57d0;outline-offset:4px;border-radius:2px;}'
+    + '.psmenu .psmenu-nav{display:flex;justify-content:flex-end;gap:.5rem;flex-shrink:0;align-items:center;flex-wrap:wrap;}'
     + '.psmenu .psmenu-nav button{background:#2d3748;color:#fff;border:0;border-radius:8px;padding:.55rem .95rem;font-size:.85rem;font-weight:600;cursor:pointer;min-height:44px;min-width:44px;}'
     + '.psmenu .psmenu-nav button:hover{background:#1c2536;}'
     + '.psmenu .psmenu-nav button:disabled{opacity:.4;cursor:default;}'
@@ -180,9 +182,10 @@
       this.el.innerHTML = '<p class="psmenu-status">Menu embed is missing data-school / data-menutype.</p>';
       return;
     }
-    // No visible heading is rendered (the host page supplies its own page
-    // title), so give the region an accessible name directly instead —
-    // otherwise screen reader users tabbing in would get no context at all.
+    // The visible label only ever shows the current month/week — no school
+    // name or "Lunch"/"Breakfast" text, since the host page's own title
+    // already covers that. Give the region an accessible name directly so
+    // screen reader users tabbing in still get that context.
     this.el.setAttribute('role', 'region');
     this.el.setAttribute('aria-label', this.displayName + ' ' + cap(this.menutype) + ' menu');
     this.render(false);
@@ -269,13 +272,14 @@
       : '';
 
     return ''
-      + '<p class="psmenu-sr-only psmenu-announce" tabindex="-1">' + esc(monthLabel) + '</p>'
+      + '<div class="psmenu-head">'
+      + '<p class="psmenu-announce" tabindex="-1">' + esc(monthLabel) + '</p>'
       + '<nav class="psmenu-nav" aria-label="Month navigation">'
       + '<button type="button" data-nav="today">Today</button>'
       + '<button type="button" data-nav="prev" aria-label="Previous month">&larr;</button>'
       + '<button type="button" data-nav="next" aria-label="Next month">&rarr;</button>'
       + '<button type="button" data-nav="print" class="psmenu-print">Print</button>'
-      + '</nav>'
+      + '</nav></div>'
       + noDataNote
       + '<table class="psmenu-cal"><caption>' + esc(cap(this.menutype)) + ' menu &mdash; ' + esc(this.displayName) + ' &mdash; ' + esc(monthLabel) + '</caption>'
       + '<thead><tr>' + headerCells + '</tr></thead><tbody>' + rowsHtml + '</tbody></table>'
@@ -340,13 +344,14 @@
     var weekLabel = fmtDate(monday) + ' – ' + fmtDate(friday) + ', ' + monday.getFullYear();
 
     return ''
-      + '<p class="psmenu-sr-only psmenu-announce" tabindex="-1">' + esc(weekLabel) + '</p>'
+      + '<div class="psmenu-head">'
+      + '<p class="psmenu-announce" tabindex="-1">' + esc(weekLabel) + '</p>'
       + '<nav class="psmenu-nav" aria-label="Week navigation">'
       + '<button type="button" data-nav="today">Today</button>'
       + '<button type="button" data-nav="prev" aria-label="Previous week">&larr;</button>'
       + '<button type="button" data-nav="next" aria-label="Next week">&rarr;</button>'
       + '<button type="button" data-nav="print" class="psmenu-print">Print</button>'
-      + '</nav>'
+      + '</nav></div>'
       + noDataNote
       + '<div class="psmenu-daylist">' + rows + '</div>'
       + '<div class="psmenu-toggle"><button type="button" data-nav="month">Month View</button></div>';
