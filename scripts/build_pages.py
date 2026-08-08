@@ -3,26 +3,17 @@ build_pages.py
 Generates WCAG 2.1 AA accessible, responsive, static HTML for each school/menutype:
 
   {school}/{menutype}/calendar/index.html   <- default / recommended embed target
-      Live copy of the current month's grid calendar (same data as the PDF),
-      a real <table> with proper headers/captions, real prev/next links to
-      adjacent months (no JS required), and a responsive "stacked" layout on
-      narrow screens. Also written per-month at calendar/{year}-{month:02d}.html.
-
-  {school}/{menutype}/week/index.html
-      Current week's menu as a simple day-by-day list — an alternate view,
-      linked from the calendar page as "List View". Also written per-week at
-      week/{YYYY-MM-DD}.html with real prev/next navigation.
+      A single page (not one file per week/month) that boots the same
+      client-side widget engine used for Finalsite embeds — it fetches the
+      feed's JSON once and does all month/week navigation in place with JS,
+      exactly like the widget. No per-date files to generate or regenerate.
 
   {school}/{menutype}/embed.html
-      The current month's calendar as a bare fragment (no <html>/<head>/<body>
-      wrapper), for pasting directly into a Finalsite "Custom HTML" component
-      if iframes aren't an option there. Re-generated daily, but a pasted copy
-      will only reflect data as of the last paste — the iframe route is
-      preferred because it always shows live data.
-
-Both view types have no fixed dimensions, no motion, and no client-side data
-fetching required — meant to be dropped into an <iframe> on the school
-website or Finalsite.
+      The current month's calendar as a bare, no-JS static fragment (no
+      <html>/<head>/<body> wrapper), for pasting directly into a Finalsite
+      "Custom HTML" component as a last-resort fallback if neither the
+      widget script nor an iframe works there. Re-generated on every build,
+      but a pasted copy only reflects data as of the last paste.
 
 Run after fetch_menus.py (and generate_pdf.py, if PDF links should resolve).
 """
@@ -30,8 +21,9 @@ Run after fetch_menus.py (and generate_pdf.py, if PDF links should resolve).
 import csv
 import html
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from pathlib import Path
+from urllib.parse import quote
 
 ROOT = Path(__file__).parent.parent
 DATA = ROOT / "data"
@@ -70,20 +62,8 @@ def esc(value) -> str:
     return html.escape(str(value), quote=True)
 
 
-def get_monday(d: date) -> date:
-    return d - timedelta(days=d.weekday())
-
-
-def fmt_date(d: date) -> str:
-    return d.strftime("%b ") + str(d.day)
-
-
 def fmt_date_long(d: date) -> str:
     return d.strftime("%A, %B ") + str(d.day)
-
-
-def fmt_date_full(d: date) -> str:
-    return d.strftime("%B ") + str(d.day) + d.strftime(", %Y")
 
 
 def item_map(school: str, menutype: str) -> dict[str, list[str]]:
@@ -93,44 +73,6 @@ def item_map(school: str, menutype: str) -> dict[str, list[str]]:
     if not data:
         return {}
     return {day["date"]: day["items"] for day in data.get("days", [])}
-
-
-# How far to generate browsable week/month pages, independent of which of
-# those months actually have published menu data yet (Nutrislice publishes
-# incrementally — most of this range will just show blank days until closer
-# to the date, same as the old per-month-file site did).
-SITE_MONTHS_BACK = 12
-SITE_MONTHS_AHEAD = 12
-
-
-def browsable_months() -> list[tuple[int, int]]:
-    today = date.today()
-    months = []
-    for delta in range(-SITE_MONTHS_BACK, SITE_MONTHS_AHEAD + 1):
-        m = today.month - 1 + delta
-        y = today.year + m // 12
-        m = m % 12 + 1
-        months.append((y, m))
-    return months
-
-
-def browsable_mondays() -> list[date]:
-    months = browsable_months()
-    start_year, start_month = months[0]
-    end_year, end_month = months[-1]
-    start = get_monday(date(start_year, start_month, 1))
-    last_day_of_end_month = (
-        date(end_year, end_month + 1, 1) - timedelta(days=1)
-        if end_month < 12 else date(end_year, 12, 31)
-    )
-    end = get_monday(last_day_of_end_month)
-
-    mondays = []
-    current = start
-    while current <= end:
-        mondays.append(current)
-        current += timedelta(days=7)
-    return mondays
 
 
 # ── Shared styling ───────────────────────────────────────────────────────
@@ -153,43 +95,20 @@ BASE_CSS = """
 .menu-embed .skip-link{position:absolute;left:-999px;top:auto;background:var(--navy);color:#fff;padding:.75rem 1rem;z-index:100;text-decoration:none;border-radius:0 0 6px 0;}
 .menu-embed .skip-link:focus{left:0;top:0;}
 
-/* Legacy banner header, still used by the embed-guide reference page */
 .menu-embed .site-header{background:var(--navy);color:#fff;padding:1.25rem 1.5rem;}
 .menu-embed .site-header h1{margin:0;font-size:clamp(1.3rem,4vw,1.9rem);}
 .menu-embed .site-header p{margin:.3rem 0 0;color:#cfe0ff;font-size:.95rem;}
 
-.menu-embed main{padding:0 1.25rem 2rem;max-width:1100px;margin:0 auto;}
+.menu-embed main{padding:1.25rem 1.25rem 2rem;max-width:1100px;margin:0 auto;}
 
-/* Page head: eyebrow + big date heading + today/prev/next nav */
-.menu-embed .page-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.75rem 1rem;max-width:1100px;margin:0 auto;padding:1.25rem 1.25rem 0;}
+/* Page head (used by the static no-JS embed.html fragment) */
+.menu-embed .page-head{max-width:1100px;margin:0 auto;padding:1.25rem 1.25rem 0;}
 .menu-embed .eyebrow{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .2rem;}
 .menu-embed .page-head h1{color:var(--brand-blue);font-size:clamp(1.4rem,4vw,2rem);margin:0;line-height:1.2;}
-.menu-embed .nav-controls{display:flex;gap:.5rem;flex-shrink:0;align-items:center;}
-.menu-embed .nav-pill,.menu-embed .nav-btn{background:var(--pill-bg);color:#fff;border:0;border-radius:8px;padding:.55rem .95rem;font-size:.85rem;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-weight:600;min-height:44px;min-width:44px;}
-.menu-embed .nav-pill:hover,.menu-embed .nav-btn:hover{background:var(--pill-bg-hover);}
-.menu-embed .nav-btn[aria-disabled="true"]{opacity:.35;pointer-events:none;}
-.menu-embed .print-link{font-size:.85rem;color:var(--navy-mid);background:none;border:0;text-decoration:underline;cursor:pointer;padding:.5rem;}
-
-/* Week / list view */
-.menu-embed .day-list{max-width:1100px;margin:1rem auto 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-.menu-embed .day-row + .day-row{border-top:1px solid var(--border);}
-.menu-embed .day-row-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:.35rem .75rem;background:var(--row-bg);padding:.7rem 1.25rem;}
-.menu-embed .day-row.today .day-row-head{background:var(--row-bg-today);}
-.menu-embed .day-row-head h2{font-size:1.05rem;color:var(--brand-blue);margin:0;display:inline-flex;align-items:center;gap:.5rem;}
-.menu-embed .day-row-head .date{font-weight:700;color:var(--brand-blue);font-size:1rem;}
-.menu-embed .today-flag{font-size:.65rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#0d2870;background:#cfe0fb;padding:.15rem .5rem;border-radius:999px;}
-.menu-embed .day-row-body{padding:1rem 1.25rem 1.25rem;background:#fff;}
-.menu-embed ul.items{list-style:none;margin:0;padding:0;}
-.menu-embed ul.items li{padding-left:1.1rem;position:relative;margin-bottom:.4rem;color:#333;}
-.menu-embed ul.items li:first-child::before{content:"";position:absolute;left:0;top:.55em;width:8px;height:8px;border-radius:50%;background:var(--brand-blue);}
-
-.menu-embed .view-toggle{display:flex;justify-content:center;margin:1.5rem auto 0;max-width:1100px;}
-.menu-embed .view-toggle a{background:var(--brand-blue);color:#fff;padding:.65rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:600;min-height:44px;display:inline-flex;align-items:center;}
-.menu-embed .view-toggle a:hover{background:var(--navy-mid);}
 
 .menu-embed .site-footer{padding:1.5rem 1.25rem 1rem;color:var(--muted);font-size:.85rem;text-align:center;}
 
-/* Monthly calendar table */
+/* Monthly calendar table (used by the static no-JS embed.html fragment) */
 .menu-embed table.cal{border-collapse:collapse;width:100%;margin-top:1rem;table-layout:fixed;}
 .menu-embed table.cal caption{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 .menu-embed table.cal th,.menu-embed table.cal td{border:1px solid var(--border);vertical-align:top;padding:.5rem;}
@@ -209,16 +128,14 @@ BASE_CSS = """
   .menu-embed table.cal td.empty{display:none;}
   .menu-embed table.cal td::before{content:attr(data-day);font-weight:700;color:var(--brand-blue);display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;}
   .menu-embed .cal-daynum{text-align:left;}
-  .menu-embed .page-head{padding:1rem 1rem 0;}
 }
 
 @media print{
-  .menu-embed .view-toggle,.menu-embed .skip-link,.menu-embed .nav-controls,.menu-embed .print-link{display:none !important;}
+  .menu-embed .skip-link{display:none !important;}
   .menu-embed .site-header{background:#fff !important;color:#000 !important;border-bottom:3px solid #000;}
   .menu-embed .site-header p{color:#333 !important;}
   .menu-embed{background:#fff !important;}
   .menu-embed table.cal thead th{background:#e5e5e5 !important;color:#000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .menu-embed .today-flag{border:1px solid #000;}
   @page{size:landscape;margin:0.4in;}
 }
 """.strip()
@@ -247,107 +164,59 @@ html,body{{margin:0;padding:0;}}
 """
 
 
-# ── Week view ─────────────────────────────────────────────────────────────
+# ── Feed page (one file per feed — the widget does all the navigating) ────
 
-def render_week_body(school: str, display_name: str, menutype: str, monday: date,
-                      nav: tuple[date | None, date | None] | None = None,
-                      with_chrome: bool = True) -> str:
-    """nav = (prev_monday, next_monday), each None if out of the browsable page range."""
-    friday = monday + timedelta(days=4)
-    day_items = item_map(school, menutype)
+def build_feed_pages():
+    """One page per feed, not one page per week/month: the same client-side
+    widget engine used for Finalsite embeds is booted here too, so month and
+    week navigation happens in place via JS against a single fetched JSON
+    file, with no server-rendered per-date pages to generate or keep in
+    sync."""
+    widget_url = f"{PAGES_BASE}/embed/menu-widget.js"
+    out_paths = []
+    for row in load_menu_list():
+        school, display_name, menutype = row["school"].strip(), row["display_name"].strip(), row["menutype"].strip()
+        out_dir = SITE / school / menutype / "calendar"
+        out_dir.mkdir(parents=True, exist_ok=True)
 
-    today = date.today()
+        script_src = (
+            f"{widget_url}?school={quote(school)}&menutype={quote(menutype)}"
+            f"&displayName={quote(display_name)}"
+        )
+        pdf_href = f"../../../pdfs/current-{menutype}-{school}.pdf"
 
-    rows = []
-    for i, day_name in enumerate(DAYS):
-        d = monday + timedelta(days=i)
-        key = d.strftime("%Y-%m-%d")
-        items = day_items.get(key, [])
-        is_today = d == today
-        flag = '<span class="today-flag">Today</span>' if is_today else ""
-        heading_id = f"day-{i}"
-        items_html = "<ul class=\"items\">" + "".join(f"<li>{esc(it)}</li>" for it in items) + "</ul>" if items else ""
-        rows.append(f"""
-      <section class="day-row{' today' if is_today else ''}" aria-labelledby="{heading_id}">
-        <div class="day-row-head">
-          <h2 id="{heading_id}">{esc(day_name)}{flag}</h2>
-          <span class="date">{esc(fmt_date_full(d))}</span>
-        </div>
-        <div class="day-row-body">{items_html}</div>
-      </section>""")
-
-    head = f"""
-<p class="eyebrow">{esc(display_name)} &middot; {esc(menutype.capitalize())}</p>
-<h1>{esc(fmt_date(monday))} &ndash; {esc(fmt_date(friday))}, {monday.year}</h1>"""
-
-    nav_html = ""
-    view_toggle = ""
-    if with_chrome:
-        prev_monday, next_monday = nav or (None, None)
-        prev_el = (f'<a class="nav-btn" href="{prev_monday.isoformat()}.html" aria-label="Previous week">&larr;</a>'
-                   if prev_monday else
-                   '<span class="nav-btn" aria-disabled="true" aria-hidden="true">&larr;</span>')
-        next_el = (f'<a class="nav-btn" href="{next_monday.isoformat()}.html" aria-label="Next week">&rarr;</a>'
-                   if next_monday else
-                   '<span class="nav-btn" aria-disabled="true" aria-hidden="true">&rarr;</span>')
-        nav_html = f"""
-  <nav class="nav-controls" aria-label="Week navigation">
-    <a class="nav-pill" href="./">Today</a>
-    {prev_el}
-    {next_el}
-    <button type="button" class="print-link" onclick="window.print()">Print</button>
-  </nav>"""
-        view_toggle = '\n  <div class="view-toggle"><a href="../calendar/">Month View</a></div>'
-
-    return f"""
-<div class="page-head">
-  <div>{head}</div>{nav_html}
-</div>
+        body = f"""
+<header class="site-header">
+  <h1>{esc(display_name)}</h1>
+  <p>{esc(menutype.capitalize())} Menu</p>
+</header>
 <main id="main">
-  <div class="day-list">
-    {''.join(rows)}
-  </div>{view_toggle}
+  <script defer src="{esc(script_src)}"></script>
+  <noscript>
+    <p>This menu needs JavaScript enabled. You can also view the
+    <a href="{esc(pdf_href)}">PDF calendar</a> instead.</p>
+  </noscript>
 </main>
 <footer class="site-footer">Menu subject to change &middot; Poland Local School District &middot; Data sourced from Nutrislice</footer>
 """.strip()
 
+        canonical = f"{PAGES_BASE}/{school}/{menutype}/calendar/"
+        page = page_shell(
+            f"{menutype.capitalize()} Menu — {display_name}",
+            f"{menutype.capitalize()} menu calendar for {display_name}.",
+            body,
+            canonical=canonical,
+        )
+        out_path = out_dir / "index.html"
+        out_path.write_text(page)
+        out_paths.append(out_path)
 
-def build_week_pages():
-    for row in load_menu_list():
-        school, display_name, menutype = row["school"].strip(), row["display_name"].strip(), row["menutype"].strip()
-        mondays = browsable_mondays()
-        current_monday = get_monday(date.today())
-        if current_monday not in mondays:
-            mondays = sorted(set(mondays) | {current_monday})
-
-        out_dir = SITE / school / menutype / "week"
-        out_dir.mkdir(parents=True, exist_ok=True)
-
-        for i, monday in enumerate(mondays):
-            prev_monday = mondays[i - 1] if i > 0 else None
-            next_monday = mondays[i + 1] if i < len(mondays) - 1 else None
-            body = render_week_body(school, display_name, menutype, monday, nav=(prev_monday, next_monday))
-            canonical = f"{PAGES_BASE}/{school}/{menutype}/week/{monday.isoformat()}.html"
-            page = page_shell(
-                f"{menutype.capitalize()} Menu — {display_name} — Week of {fmt_date(monday)}",
-                f"{menutype.capitalize()} menu for {display_name}, week of {fmt_date(monday)}.",
-                body,
-                canonical=canonical,
-            )
-            (out_dir / f"{monday.isoformat()}.html").write_text(page)
-
-        # index.html = a live copy of the current week's page (not a redirect,
-        # so it loads instantly when used as an iframe src).
-        current_file = out_dir / f"{current_monday.isoformat()}.html"
-        if current_file.exists():
-            (out_dir / "index.html").write_text(current_file.read_text())
-
-    print(f"  Week pages built for {len(load_menu_list())} feeds")
+    print(f"  Feed pages built: {len(out_paths)}")
 
 
-# ── Monthly calendar view ───────────────────────────────────────────────
+# ── Static no-JS fallback fragment (current month only) ───────────────────
 
-def build_week_grid(item_map: dict[str, list[str]], year: int, month: int) -> list[list[tuple[int | None, list[str]]]]:
+def build_week_grid(day_items: dict[str, list[str]], year: int, month: int) -> list[list[tuple[int | None, list[str]]]]:
     first = date(year, month, 1)
     last_day = (date(year, month + 1, 1) - timedelta(days=1)) if month < 12 else date(year, 12, 31)
     week_start = first - timedelta(days=first.weekday())
@@ -360,7 +229,7 @@ def build_week_grid(item_map: dict[str, list[str]], year: int, month: int) -> li
             d = current + timedelta(days=i)
             key = d.strftime("%Y-%m-%d")
             if d.month == month:
-                week.append((d.day, item_map.get(key, [])))
+                week.append((d.day, day_items.get(key, [])))
             else:
                 week.append((None, []))
         weeks.append(week)
@@ -368,9 +237,9 @@ def build_week_grid(item_map: dict[str, list[str]], year: int, month: int) -> li
     return weeks
 
 
-def render_calendar_body(school: str, display_name: str, menutype: str, year: int, month: int,
-                          nav: tuple[tuple[int, int] | None, tuple[int, int] | None] | None = None,
-                          with_chrome: bool = True) -> str:
+def render_calendar_fragment(school: str, display_name: str, menutype: str, year: int, month: int) -> str:
+    """Chromeless current-month table — no nav, no JS — for the static
+    embed.html fallback only."""
     day_items = item_map(school, menutype)
     weeks = build_week_grid(day_items, year, month)
 
@@ -395,94 +264,48 @@ def render_calendar_body(school: str, display_name: str, menutype: str, year: in
     month_label = f"{MONTH_NAMES[month]} {year}"
     caption = f"{esc(menutype.capitalize())} menu &mdash; {esc(display_name)} &mdash; {esc(month_label)}"
 
-    nav_html = ""
-    view_toggle = ""
-    if with_chrome:
-        prev_ym, next_ym = nav or (None, None)
-        prev_el = (f'<a class="nav-btn" href="{prev_ym[0]}-{prev_ym[1]:02d}.html" aria-label="Previous month">&larr;</a>'
-                   if prev_ym else
-                   '<span class="nav-btn" aria-disabled="true" aria-hidden="true">&larr;</span>')
-        next_el = (f'<a class="nav-btn" href="{next_ym[0]}-{next_ym[1]:02d}.html" aria-label="Next month">&rarr;</a>'
-                   if next_ym else
-                   '<span class="nav-btn" aria-disabled="true" aria-hidden="true">&rarr;</span>')
-        nav_html = f"""
-  <nav class="nav-controls" aria-label="Month navigation">
-    <a class="nav-pill" href="index.html">Today</a>
-    {prev_el}
-    {next_el}
-    <button type="button" class="print-link" onclick="window.print()">Print</button>
-  </nav>"""
-        view_toggle = '\n  <div class="view-toggle"><a href="../week/">List View</a></div>'
-
     return f"""
 <div class="page-head">
-  <div>
-    <p class="eyebrow">{esc(menutype.capitalize())} &middot; {esc(display_name)}</p>
-    <h1>{esc(month_label)}</h1>
-  </div>{nav_html}
+  <p class="eyebrow">{esc(menutype.capitalize())} &middot; {esc(display_name)}</p>
+  <h1>{esc(month_label)}</h1>
 </div>
 <main id="main">
   <table class="cal">
     <caption>{caption}</caption>
     <thead><tr>{header_cells}</tr></thead>
     <tbody>{''.join(rows)}</tbody>
-  </table>{view_toggle}
+  </table>
 </main>
-<footer class="site-footer">Menu subject to change &middot; Poland Local School District &middot; Data sourced from Nutrislice</footer>
 """.strip()
 
 
-def build_calendar_pages():
-    built = 0
+def build_embed_fragments():
+    today = date.today()
+    count = 0
     for row in load_menu_list():
         school, display_name, menutype = row["school"].strip(), row["display_name"].strip(), row["menutype"].strip()
-        cal_dir = SITE / school / menutype / "calendar"
-        cal_dir.mkdir(parents=True, exist_ok=True)
-
-        months = browsable_months()
-
-        for i, (year, month) in enumerate(months):
-            prev_ym = months[i - 1] if i > 0 else None
-            next_ym = months[i + 1] if i < len(months) - 1 else None
-            body = render_calendar_body(school, display_name, menutype, year, month, nav=(prev_ym, next_ym))
-            canonical = f"{PAGES_BASE}/{school}/{menutype}/calendar/{year}-{month:02d}.html"
-            page = page_shell(
-                f"{menutype.capitalize()} Calendar — {MONTH_NAMES[month]} {year} — {display_name}",
-                f"Printable {menutype} calendar for {display_name}, {MONTH_NAMES[month]} {year}.",
-                body,
-                canonical=canonical,
-            )
-            (cal_dir / f"{year}-{month:02d}.html").write_text(page)
-            built += 1
-
-        # index.html = a live copy of the current month's page (not a
-        # redirect, so it loads instantly when used as an iframe src). Falls
-        # back to the most recent available month if the current one has no
-        # data yet.
-        today = date.today()
-        current_ym = (today.year, today.month)
-        if current_ym not in months and months:
-            current_ym = months[-1]
-        current_file = cal_dir / f"{current_ym[0]}-{current_ym[1]:02d}.html"
-        if current_file.exists():
-            (cal_dir / "index.html").write_text(current_file.read_text())
-
-        # Bare fragment (month view, the default) — for pasting into a
-        # Finalsite Custom HTML block if iframes aren't an option there.
-        if current_file.exists():
-            fragment_body = render_calendar_body(school, display_name, menutype,
-                                                  current_ym[0], current_ym[1], with_chrome=False)
-            embed_url = f"{PAGES_BASE}/{school}/{menutype}/embed.html"
-            fragment = f"<!-- Poland Schools menu embed — {esc(display_name)} {esc(menutype)}. " \
-                       f"Regenerated daily; re-copy from {embed_url} to stay current if " \
-                       f"pasted as static HTML instead of used via iframe. -->\n" \
-                       f"<div class=\"menu-embed\">\n<style>{BASE_CSS}</style>\n{fragment_body}\n</div>\n"
-            (SITE / school / menutype / "embed.html").write_text(fragment)
-
-    print(f"  Calendar pages built: {built}")
+        fragment_body = render_calendar_fragment(school, display_name, menutype, today.year, today.month)
+        embed_url = f"{PAGES_BASE}/{school}/{menutype}/embed.html"
+        fragment = f"<!-- Poland Schools menu embed — {esc(display_name)} {esc(menutype)}. " \
+                   f"Regenerated on every build; re-copy from {embed_url} to stay current if " \
+                   f"pasted as static HTML instead of used via the widget/iframe. -->\n" \
+                   f"<div class=\"menu-embed\">\n<style>{BASE_CSS}</style>\n{fragment_body}\n</div>\n"
+        (SITE / school / menutype / "embed.html").write_text(fragment)
+        count += 1
+    print(f"  Static embed fragments built: {count}")
 
 
 # ── Embed guide ───────────────────────────────────────────────────────────
+
+def current_and_next_month() -> list[tuple[str, int, int]]:
+    """(label, year, month) for the two PDFs generate_pdf.py always
+    produces — current-*.pdf and next-*.pdf, filenames that never change,
+    with the year/month here used only for display labels."""
+    today = date.today()
+    this_month = (today.year, today.month)
+    next_month = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
+    return [("current", *this_month), ("next", *next_month)]
+
 
 def build_embed_guide():
     """A human-facing page listing ready-to-copy embed snippets for whoever
@@ -492,7 +315,6 @@ def build_embed_guide():
     sections = []
     for row in load_menu_list():
         school, display_name, menutype = row["school"].strip(), row["display_name"].strip(), row["menutype"].strip()
-        week_url = f"{PAGES_BASE}/{school}/{menutype}/week/"
         cal_url = f"{PAGES_BASE}/{school}/{menutype}/calendar/"
         embed_url = f"{PAGES_BASE}/{school}/{menutype}/embed.html"
 
@@ -528,11 +350,7 @@ def build_embed_guide():
             pdf_photo_snippet = ""
 
         cal_iframe_snippet = (
-            f'<iframe src="{cal_url}" title="{esc(display_name)} {esc(menutype)} calendar" '
-            f'style="width:100%;max-width:900px;border:0;min-height:800px" loading="lazy"></iframe>'
-        )
-        iframe_snippet = (
-            f'<iframe src="{week_url}" title="{esc(display_name)} {esc(menutype)} menu" '
+            f'<iframe src="{cal_url}" title="{esc(display_name)} {esc(menutype)} menu" '
             f'style="width:100%;max-width:900px;border:0;min-height:900px" loading="lazy"></iframe>'
         )
 
@@ -549,11 +367,10 @@ def build_embed_guide():
       of the other three widget files on the same page with zero risk of collision. The menu data
       itself is never hardcoded &mdash; the only network request it makes at runtime is fetching
       the current JSON from the repo, so it always shows live data with no rebuild/re-paste
-      needed. No visible title/heading is rendered &mdash; Finalsite's own page title already
-      covers that, so the widget doesn't duplicate it (the page section it's on still gets an
-      accessible name for screen readers, just not a second visible heading). Built on semantic
-      HTML (a real <code>&lt;table&gt;</code> for the grid, focus-visible states, 44px touch
-      targets) rather than a calendar library's non-semantic div grid.</p>
+      needed. Month view and list view are both built in, with an in-page toggle button &mdash;
+      one page, no separate URLs. Built on semantic HTML (a real <code>&lt;table&gt;</code> for
+      the grid, focus-visible states, 44px touch targets) rather than a calendar library's
+      non-semantic div grid.</p>
 
       <h3>Lighter alternative: one script tag, shared engine</h3>
       <p>Functionally identical, but loads the engine from one shared external file instead of
@@ -567,16 +384,15 @@ def build_embed_guide():
       <h3>Alternative: iframe</h3>
       <p>Simpler, but some Finalsite CSP configurations block framed content outright (that's
       what happened when we first tried this route) &mdash; use one of the options above if this
-      gets silently blocked.</p>
+      gets silently blocked. Same page as above, so month/list view toggle is included.</p>
       <pre><code>{esc(cal_iframe_snippet)}</code></pre>
-      <pre><code>{esc(iframe_snippet)}</code></pre>
 
       <h3>Fallback: static fragment</h3>
       <p>Only if none of the above works. Copy the contents of
       <a href="{esc(embed_url)}">{esc(embed_url)}</a> directly into the Custom HTML block
-      (renders the monthly calendar as of the last rebuild). It is regenerated daily, but a
-      pasted copy freezes at paste time &mdash; you'd need to re-copy it each time the menu
-      changes to stay current.</p>
+      (renders the monthly calendar as of the last rebuild, no JS, no list view). It is
+      regenerated on every build, but a pasted copy freezes at paste time &mdash; you'd need to
+      re-copy it each time the menu changes to stay current.</p>
 
       <h3>PDF calendar &mdash; "Download" photo for Finalsite</h3>
       <p>{pdf_photo_note}</p>
@@ -595,8 +411,8 @@ def build_embed_guide():
   menu JSON straight from this repo client-side and renders it in the page &mdash; no HTML markup
   beyond the paste, no framing (which avoids the CSP <code>frame-src</code> blocks some Finalsite
   configurations apply to iframes), and everything namespaced so multiple feeds coexist safely on
-  one page. The monthly calendar is the default view everywhere; every page links to the alternate
-  list view too.</p>
+  one page. Month view is the default, with an in-page button to switch to list view &mdash; one
+  page handles both, same as this site's own menu pages.</p>
   {''.join(sections)}
 </main>
 <footer class="site-footer">Internal reference page &mdash; not linked from the public menu pages.</footer>
@@ -624,16 +440,6 @@ def build_embed_guide():
 MEAL_ICONS = {"breakfast": "🥞", "lunch": "🍕"}
 
 
-def current_and_next_month() -> list[tuple[str, int, int]]:
-    """(label, year, month) for the two PDFs generate_pdf.py always
-    produces — current-*.pdf and next-*.pdf, filenames that never change,
-    with the year/month here used only for display labels."""
-    today = date.today()
-    this_month = (today.year, today.month)
-    next_month = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
-    return [("current", *this_month), ("next", *next_month)]
-
-
 def build_index_page():
     feed_cards = []
     pdf_cards = []
@@ -646,7 +452,7 @@ def build_index_page():
         <span class="card-icon" aria-hidden="true">{icon}</span>
         <span class="card-school">{esc(display_name)}</span>
         <span class="card-type">{esc(menutype.capitalize())}</span>
-        <span class="card-desc">Monthly calendar — accessible, mobile-friendly, iframe-ready</span>
+        <span class="card-desc">Month &amp; list view, on one page &mdash; accessible, mobile-friendly</span>
       </a>""")
 
         if (SITE / "pdfs" / f"current-{menutype}-{school}.pdf").exists():
@@ -665,14 +471,6 @@ def build_index_page():
         <span class="card-school">{esc(row['display_name'].strip())}</span>
         <span class="card-type">{esc(row['menutype'].strip().capitalize())}</span>
         <span class="card-desc">Fullscreen TV display</span>
-      </a>""" for row in load_menu_list())
-
-    week_cards = "".join(f"""
-      <a class="card" href="{esc(row['school'].strip())}/{esc(row['menutype'].strip())}/week/">
-        <span class="card-icon" aria-hidden="true">📋</span>
-        <span class="card-school">{esc(row['display_name'].strip())}</span>
-        <span class="card-type">{esc(row['menutype'].strip().capitalize())}</span>
-        <span class="card-desc">This week as a simple list</span>
       </a>""" for row in load_menu_list())
 
     page = f"""<!DOCTYPE html>
@@ -712,11 +510,8 @@ def build_index_page():
   <h1>Poland <span>Schools</span></h1>
   <p class="subtitle">Menu Display System</p>
 
-  <p class="section-label">🗓️ Monthly Calendars</p>
+  <p class="section-label">🍽️ Menus</p>
   <div class="grid">{''.join(feed_cards)}</div>
-
-  <p class="section-label">📋 Weekly List View</p>
-  <div class="grid">{week_cards}</div>
 
   <p class="section-label">📄 Monthly PDF Calendars</p>
   <div class="grid">{''.join(pdf_cards) if pdf_cards else '<p style="color:var(--gray)">PDFs are generated by the daily build — check back soon.</p>'}</div>
@@ -736,8 +531,8 @@ def build_index_page():
 
 
 if __name__ == "__main__":
-    build_week_pages()
-    build_calendar_pages()
+    build_feed_pages()
+    build_embed_fragments()
     build_embed_guide()
     build_index_page()
     print("Accessible pages built.")
