@@ -2,8 +2,11 @@ name: Build and Deploy Menus
 
 on:
   schedule:
-    # Daily at 6:00 AM Eastern (11:00 UTC).
-    - cron: "0 11 * * *"
+    # Twice a week (Monday + Thursday) at 6:00 AM Eastern (11:00 UTC)...
+    - cron: "0 11 * * 1,4"
+    # ...plus always on the 1st of the month, regardless of what weekday
+    # that falls on, so the new current-/next- PDF pair is never late.
+    - cron: "0 11 1 * *"
   workflow_dispatch:
     inputs:
       year:

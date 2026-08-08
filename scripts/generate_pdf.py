@@ -474,25 +474,30 @@ def draw_page(c: canvas.Canvas, data: dict, year: int, month: int,
 # Entry point
 # ---------------------------------------------------------------------------
 
-def generate_all(months: list[tuple[int, int]]):
+def generate_all(labeled_months: list[tuple[str, int, int]]):
+    """labeled_months: (filename_label, year, month) triples. The label IS
+    the output filename's prefix — e.g. ("current", 2026, 9) writes
+    current-{menutype}-{school}.pdf. There's no separate dated file and no
+    copy step: this is the only PDF generated for that label, so the site
+    only ever has exactly as many PDFs as labels passed in."""
     import csv
 
     csv_path = Path(__file__).parent / "menu-list.csv"
     with open(csv_path, newline="") as f:
         rows = list(csv.DictReader(f))
 
-    for year, month in months:
+    for label, year, month in labeled_months:
         for row in rows:
             school       = row["school"].strip()
             display_name = row["display_name"].strip()
             menutype     = row["menutype"].strip()
 
-            print(f"\n→ PDF: {display_name} / {menutype} — {MONTH_NAMES[month]} {year}")
+            print(f"\n→ PDF ({label}): {display_name} / {menutype} — {MONTH_NAMES[month]} {year}")
             data = load_rollup(school, menutype)
             if data is None:
                 continue
 
-            out_path = PDF_DIR / f"{year}-{month:02d}-{menutype}-{school}.pdf"
+            out_path = PDF_DIR / f"{label}-{menutype}-{school}.pdf"
             c = canvas.Canvas(str(out_path), pagesize=landscape(letter))
             draw_page(c, data, year, month, display_name, menutype, school)
             c.showPage()
@@ -500,68 +505,43 @@ def generate_all(months: list[tuple[int, int]]):
             print(f"  ✓ {out_path.name}")
 
 
-def prune_stale_pdfs(keep_months: list[tuple[int, int]]):
-    """Removes PDFs (and their preview cards) for any month other than the
-    ones just generated — the site should only ever offer the current month
-    and next month, never accumulate old ones. Leaves the current-/next-
-    stable-name aliases alone (they don't start with a year and are
-    overwritten fresh on every run anyway)."""
-    keep_stems = {f"{y}-{m:02d}" for y, m in keep_months}
+def prune_other_pdfs(keep_labels: set[str]):
+    """Removes any PDF (and its preview card) whose filename doesn't start
+    with one of keep_labels — covers leftover dated files from before this
+    script wrote directly to current-/next-, and any one-off manual/preview
+    output, so the site only ever has exactly the current set."""
     removed = 0
     for pdf_path in PDF_DIR.glob("*.pdf"):
-        if pdf_path.stem.startswith(("current-", "next-")):
-            continue
-        if pdf_path.stem[:7] not in keep_stems:
+        if pdf_path.stem.split("-", 1)[0] not in keep_labels:
             pdf_path.unlink()
             thumb = PDF_DIR / "thumbnails" / f"{pdf_path.stem}.png"
             if thumb.exists():
                 thumb.unlink()
             removed += 1
     if removed:
-        print(f"\n  Pruned {removed} stale PDF(s)/preview card(s) outside {sorted(keep_stems)}")
-
-
-def write_stable_aliases(current_ym: tuple[int, int], next_ym: tuple[int, int]):
-    """Copies each dated PDF to a permanent current-/next- filename too, so
-    a URL pasted into Finalsite never needs to change month to month."""
-    import csv
-    import shutil
-
-    csv_path = Path(__file__).parent / "menu-list.csv"
-    with open(csv_path, newline="") as f:
-        rows = list(csv.DictReader(f))
-
-    for label, (y, m) in (("current", current_ym), ("next", next_ym)):
-        for row in rows:
-            school = row["school"].strip()
-            menutype = row["menutype"].strip()
-            src = PDF_DIR / f"{y}-{m:02d}-{menutype}-{school}.pdf"
-            if not src.exists():
-                continue
-            dest = PDF_DIR / f"{label}-{menutype}-{school}.pdf"
-            shutil.copy2(src, dest)
-    print(f"  Wrote current-/next- stable-name PDF aliases")
+        print(f"\n  Pruned {removed} PDF(s)/preview card(s) outside {sorted(keep_labels)}")
 
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--year",  type=int, help="Single year (requires --month)")
+    parser.add_argument("--year",  type=int, help="Single year (requires --month) — writes a one-off preview-*.pdf, doesn't touch current-/next-")
     parser.add_argument("--month", type=int, help="Single month 1-12 (requires --year)")
     args = parser.parse_args()
 
     if args.year and args.month:
-        months = [(args.year, args.month)]
-        generate_all(months)
+        generate_all([("preview", args.year, args.month)])
     else:
-        # Default: current month + next month only — the site should never
-        # show more than these two, so anything else on disk gets removed.
+        # The only PDFs the site ever has: current month and next month,
+        # under permanent filenames (current-*.pdf / next-*.pdf) — nothing
+        # dated, nothing to prune month to month, no URL ever changes.
         today = date.today()
         this_month = (today.year, today.month)
         next_month = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
-        months = [this_month, next_month]
-        generate_all(months)
-        prune_stale_pdfs(months)
-        write_stable_aliases(this_month, next_month)
+        generate_all([
+            ("current", *this_month),
+            ("next", *next_month),
+        ])
+        prune_other_pdfs({"current", "next"})
 
     print("\n✅ PDFs generated.")
