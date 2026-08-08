@@ -170,53 +170,28 @@ def draw_header(c: canvas.Canvas, school: str, menutype: str, year: int, month: 
     left = MARGIN
     dx = PAGE_W - MARGIN
 
-    # Banner photo (optional) is drawn FIRST, full-bleed across the entire
-    # header band, so it sits BEHIND all the header text — matching the
-    # district's original design, where the photo fades to white on the
-    # edges (baked into the image itself) so the overlaid text stays
-    # legible. Stretched to exactly fill the header box rather than
-    # letterboxed, since these images are custom-cropped wide banners
-    # meant for exactly this full-bleed placement.
-    banner_img = load_image(ASSETS_DIR / f"{school}-menu-header.jpg") or load_image(ASSETS_DIR / f"{school}-menu-header.png")
-    if banner_img is not None:
-        try:
-            c.drawImage(banner_img, left, top - HEADER_H, width=dx - left, height=HEADER_H,
-                        preserveAspectRatio=False, mask='auto')
-
-            # Legibility scrim: these banner photos don't have a fade zone
-            # that lines up with where the text actually sits (busy mascot
-            # art can land right under the title), so wash a translucent
-            # white panel behind each text zone — image still shows through,
-            # text stays reliably readable regardless of what's under it.
-            c.saveState()
-            c.setFillColor(WHITE)
-            c.setFillAlpha(0.72)
-            c.rect(left, top - HEADER_H, (dx - left) * 0.60, HEADER_H, fill=1, stroke=0)
-            c.setFillAlpha(0.55)
-            right_zone_w = (dx - left) * 0.24
-            c.rect(dx - right_zone_w, top - HEADER_H, right_zone_w, HEADER_H, fill=1, stroke=0)
-            c.restoreState()
-        except Exception as e:
-            print(f"  ⚠ Could not draw banner image: {e}")
-
-    # School name / meal type / month (drawn on top of the banner)
+    # School name / meal type / month (left side)
     c.setFillColor(INK)
     c.setFont("Helvetica-Bold", 15)
     c.drawString(left, top - 16, banner_title)
+    title_w = c.stringWidth(banner_title, "Helvetica-Bold", 15)
 
+    month_line = f"{menutype.upper()} - {MONTH_NAMES[month].upper()} {year}"
     c.setFont("Helvetica-Bold", 22)
-    c.drawString(left, top - 38, f"{menutype.upper()} - {MONTH_NAMES[month].upper()} {year}")
+    c.drawString(left, top - 38, month_line)
+    month_w = c.stringWidth(month_line, "Helvetica-Bold", 22)
 
     c.setFont("Helvetica-Bold", 10)
     c.setFillColor(colors.HexColor("#c00000"))
     subject = "MENUS SUBJECT TO CHANGE"
     c.drawString(left, top - 53, subject)
-    text_w = c.stringWidth(subject, "Helvetica-Bold", 10)
+    subject_w = c.stringWidth(subject, "Helvetica-Bold", 10)
     c.setLineWidth(0.75)
-    c.line(left, top - 55, left + text_w, top - 55)
+    c.line(left, top - 55, left + subject_w, top - 55)
 
-    # Director contact block (top-right), logo beside it — also on top of
-    # the banner, sitting over the lighter/faded right portion of the image.
+    left_block_w = max(title_w, month_w, subject_w)
+
+    # Director contact block (top-right), logo beside it.
     logo_img = load_image(ASSETS_DIR / "the-nutrition-group.png")
     logo_w = logo_h = 0.42 * inch
     text_right = dx
@@ -227,6 +202,30 @@ def draw_header(c: canvas.Canvas, school: str, menutype: str, year: int, month: 
                         preserveAspectRatio=True, anchor='c', mask='auto')
         except Exception as e:
             print(f"  ⚠ Could not draw logo: {e}")
+
+    director_lines = [
+        ("Food Service Director:", "Helvetica-Bold", 7),
+        (DIRECTOR["name"], "Helvetica-Bold", 7.5),
+        (DIRECTOR["email"], "Helvetica", 7),
+        (DIRECTOR["phone"], "Helvetica", 7),
+    ]
+    right_block_w = max(c.stringWidth(t, f, s) for t, f, s in director_lines)
+
+    # Banner photo (optional) — sized to its own aspect ratio (never
+    # stretched/distorted) and centered in the empty gap between the left
+    # text block and the right director/logo block, so it never overlaps
+    # text and doesn't need a legibility scrim.
+    banner_img = load_image(ASSETS_DIR / f"{school}-menu-header.jpg") or load_image(ASSETS_DIR / f"{school}-menu-header.png")
+    if banner_img is not None:
+        gap_x0 = left + left_block_w + 16
+        gap_x1 = text_right - right_block_w - 16
+        gap_w = gap_x1 - gap_x0
+        if gap_w > 30:  # skip drawing if the text left basically no room
+            try:
+                c.drawImage(banner_img, gap_x0, top - HEADER_H, width=gap_w, height=HEADER_H,
+                            preserveAspectRatio=True, anchor='c', mask='auto')
+            except Exception as e:
+                print(f"  ⚠ Could not draw banner image: {e}")
 
     c.setFont("Helvetica-Bold", 7)
     c.setFillColor(INK)
