@@ -429,19 +429,20 @@ def draw_grid(c: canvas.Canvas, data: dict, year: int, month: int):
             c.drawString(cell_x + 5, row_top - 11, str(day_num))
 
             if items:
-                font_size = 6.6
+                font_size = 8
                 c.setFont("Helvetica", font_size)
-                line_h = font_size + 2
+                line_h = font_size + 2.2
                 avail_h = row_h - 16
                 max_lines = max(1, int(avail_h / line_h))
+                max_chars = max(8, int(COL_W / (font_size * 0.55)))
                 text_y = row_top - 20
                 lines_drawn = 0
                 for item in items:
-                    wrapped = wrap_text_lines(item, int(COL_W / 3.6))
+                    wrapped = wrap_text_lines(item, max_chars)
                     for line in wrapped:
                         if lines_drawn >= max_lines:
                             break
-                        c.setFillColor(MUTED)
+                        c.setFillColor(INK)
                         c.drawString(cell_x + 5, text_y, line)
                         text_y -= line_h
                         lines_drawn += 1
