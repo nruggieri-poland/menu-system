@@ -38,7 +38,7 @@
     'July', 'August', 'September', 'October', 'November', 'December'];
   var SCHOOL_NAMES = {
     'pshs': 'Poland Seminary High School',
-    'mckinley-middle': 'McKinley Middle School'
+    'mckinley-middle': 'McKinley/Middle School'
   };
 
   // ── Helpers ────────────────────────────────────────────────────────────

@@ -451,6 +451,9 @@ SCHOOL_GROUPS = [
 ]
 
 
+MEAL_ORDER = ["lunch", "breakfast"]
+
+
 def build_index_page():
     menu_list = load_menu_list()
     rows_by_school = {}
@@ -459,27 +462,37 @@ def build_index_page():
 
     school_sections = []
     for display_name, feed_school in SCHOOL_GROUPS:
-        meal_buttons = []
-        for row in rows_by_school.get(feed_school, []):
-            menutype = row["menutype"].strip()
+        menutypes_available = {row["menutype"].strip() for row in rows_by_school.get(feed_school, [])}
+
+        meal_groups = []
+        for menutype in MEAL_ORDER:
+            if menutype not in menutypes_available:
+                continue
             icon = MEAL_ICONS.get(menutype, "🍽️")
-            pdf_link = ""
-            if (SITE / "pdfs" / f"current-{menutype}-{feed_school}.pdf").exists():
-                pdf_link = (f'<a class="pdf-link" href="pdfs/current-{menutype}-{feed_school}.pdf">'
-                            f'📄 Download {esc(menutype.capitalize())} PDF</a>')
-            meal_buttons.append(f"""
-        <div class="meal">
-          <a class="meal-btn" href="{feed_school}/{menutype}/calendar/">
-            <span class="meal-icon" aria-hidden="true">{icon}</span>
-            <span>{esc(menutype.capitalize())} Menu</span>
-          </a>
-          {pdf_link}
-        </div>""")
+
+            pdf_cards = []
+            for label, year, month in current_and_next_month():
+                stem = f"{label}-{menutype}-{feed_school}"
+                if not (SITE / "pdfs" / f"{stem}.pdf").exists():
+                    continue
+                month_label = f"{MONTH_NAMES[month]} {year}"
+                pdf_cards.append(f"""
+          <a class="pdf-card" href="pdfs/{stem}.pdf">
+            <img src="pdfs/thumbnails/{stem}.png" alt="{esc(month_label)} {esc(menutype)} calendar for {esc(display_name)} (PDF)" loading="lazy">
+            <span>{'Current' if label == 'current' else 'Next'} Month &middot; {esc(month_label)}</span>
+          </a>""")
+
+            meal_groups.append(f"""
+      <div class="meal-group">
+        <h3><span aria-hidden="true">{icon}</span> {esc(menutype.capitalize())}
+          <a class="online-link" href="{feed_school}/{menutype}/calendar/">View online &rarr;</a></h3>
+        <div class="pdf-row">{''.join(pdf_cards) if pdf_cards else '<p class="pdf-empty">PDF not generated yet.</p>'}</div>
+      </div>""")
 
         school_sections.append(f"""
     <section class="school-panel">
       <h2>{esc(display_name)}</h2>
-      <div class="meals">{''.join(meal_buttons)}</div>
+      {''.join(meal_groups)}
     </section>""")
 
     page = f"""<!DOCTYPE html>
@@ -499,20 +512,20 @@ def build_index_page():
   h1{{ font-size:clamp(32px,5vw,52px); letter-spacing:1px; margin-bottom:6px; text-align:center; }}
   h1 span{{ color:var(--accent); }}
   .subtitle{{ font-size:17px; color:var(--gray); margin-bottom:48px; text-align:center; max-width:32em; }}
-  .schools{{ display:flex; flex-direction:column; gap:24px; max-width:640px; width:100%; }}
-  .school-panel{{ background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:18px; padding:28px 28px 24px; }}
-  .school-panel h2{{ font-size:22px; font-weight:700; margin-bottom:18px; }}
-  .meals{{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }}
-  .meal{{ display:flex; flex-direction:column; gap:8px; }}
-  .meal-btn{{ background:var(--accent); color:var(--navy); text-decoration:none; font-weight:700; font-size:17px;
-    border-radius:12px; padding:16px 18px; display:flex; align-items:center; gap:10px; min-height:44px;
-    transition:transform .15s, background .15s; }}
-  .meal-btn:hover{{ background:#a4dfff; transform:translateY(-2px); }}
-  .meal-icon{{ font-size:24px; }}
-  .pdf-link{{ color:var(--gray); font-size:13px; text-decoration:underline; padding:.25rem 0; }}
-  .pdf-link:hover{{ color:var(--accent); }}
-  footer{{ margin-top:48px; font-size:13px; color:var(--gray); opacity:.7; text-align:center; }}
-  footer a{{ color:var(--accent); }}
+  .schools{{ display:flex; flex-direction:column; gap:24px; max-width:820px; width:100%; }}
+  .school-panel{{ background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:18px; padding:28px; }}
+  .school-panel h2{{ font-size:22px; font-weight:700; margin-bottom:20px; }}
+  .meal-group + .meal-group{{ margin-top:24px; }}
+  .meal-group h3{{ font-size:16px; font-weight:700; display:flex; align-items:center; gap:8px; margin-bottom:12px; }}
+  .online-link{{ margin-left:auto; font-size:13px; font-weight:600; color:var(--accent); text-decoration:none; }}
+  .online-link:hover{{ text-decoration:underline; }}
+  .pdf-row{{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }}
+  .pdf-card{{ background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px;
+    padding:10px; text-decoration:none; color:var(--white); display:flex; flex-direction:column; gap:8px;
+    font-size:13px; font-weight:600; transition:transform .15s, border-color .15s; }}
+  .pdf-card:hover{{ transform:translateY(-2px); border-color:var(--accent); }}
+  .pdf-card img{{ width:100%; border-radius:8px; display:block; }}
+  .pdf-empty{{ color:var(--gray); font-size:13px; }}
 </style>
 </head>
 <body>
@@ -520,12 +533,6 @@ def build_index_page():
   <p class="subtitle">Find your child&rsquo;s school below for this month&rsquo;s breakfast and lunch menu.</p>
 
   <div class="schools">{''.join(school_sections)}</div>
-
-  <footer>
-    Poland Local School District &middot; Menu data sourced from Nutrislice<br>
-    Staff resources: <a href="embed-guide/">Embedding these menus</a> &middot;
-    <a href="tv.html">TV displays</a>
-  </footer>
 </body>
 </html>
 """
