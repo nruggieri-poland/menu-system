@@ -439,39 +439,48 @@ def build_embed_guide():
 
 MEAL_ICONS = {"breakfast": "🥞", "lunch": "🍕"}
 
+# The public-facing landing page groups by the three actual schools
+# families think in terms of — not by data "feed". McKinley Elementary and
+# Poland Middle share one building and one Nutrislice feed/menu, so both
+# names point at the same mckinley-middle feed; Poland Seminary High has
+# its own.
+SCHOOL_GROUPS = [
+    ("McKinley Elementary School", "mckinley-middle"),
+    ("Poland Middle School", "mckinley-middle"),
+    ("Poland Seminary High School", "pshs"),
+]
+
 
 def build_index_page():
-    feed_cards = []
-    pdf_cards = []
-    for row in load_menu_list():
-        school, display_name, menutype = row["school"].strip(), row["display_name"].strip(), row["menutype"].strip()
-        icon = MEAL_ICONS.get(menutype, "🍽️")
+    menu_list = load_menu_list()
+    rows_by_school = {}
+    for row in menu_list:
+        rows_by_school.setdefault(row["school"].strip(), []).append(row)
 
-        feed_cards.append(f"""
-      <a class="card" href="{school}/{menutype}/calendar/">
-        <span class="card-icon" aria-hidden="true">{icon}</span>
-        <span class="card-school">{esc(display_name)}</span>
-        <span class="card-type">{esc(menutype.capitalize())}</span>
-        <span class="card-desc">Month &amp; list view, on one page &mdash; accessible, mobile-friendly</span>
-      </a>""")
+    school_sections = []
+    for display_name, feed_school in SCHOOL_GROUPS:
+        meal_buttons = []
+        for row in rows_by_school.get(feed_school, []):
+            menutype = row["menutype"].strip()
+            icon = MEAL_ICONS.get(menutype, "🍽️")
+            pdf_link = ""
+            if (SITE / "pdfs" / f"current-{menutype}-{feed_school}.pdf").exists():
+                pdf_link = (f'<a class="pdf-link" href="pdfs/current-{menutype}-{feed_school}.pdf">'
+                            f'📄 Download {esc(menutype.capitalize())} PDF</a>')
+            meal_buttons.append(f"""
+        <div class="meal">
+          <a class="meal-btn" href="{feed_school}/{menutype}/calendar/">
+            <span class="meal-icon" aria-hidden="true">{icon}</span>
+            <span>{esc(menutype.capitalize())} Menu</span>
+          </a>
+          {pdf_link}
+        </div>""")
 
-        if (SITE / "pdfs" / f"current-{menutype}-{school}.pdf").exists():
-            for label, year, month in current_and_next_month():
-                stem = f"{label}-{menutype}-{school}"
-                pdf_cards.append(f"""
-      <a class="card pdf-card" href="pdfs/{stem}.pdf">
-        <img src="pdfs/thumbnails/{stem}.png" alt="{esc(MONTH_NAMES[month])} {year} {esc(menutype)} calendar for {esc(display_name)} (PDF)" loading="lazy">
-        <span class="card-school">{esc(display_name)}</span>
-        <span class="card-type">{esc(MONTH_NAMES[month])} {year} &middot; {esc(menutype.capitalize())} PDF</span>
-      </a>""")
-
-    tv_cards = "".join(f"""
-      <a class="card" href="tv.html?school={esc(row['school'].strip())}&type={esc(row['menutype'].strip())}" target="_blank" rel="noopener">
-        <span class="card-icon" aria-hidden="true">{MEAL_ICONS.get(row['menutype'].strip(), '📺')}</span>
-        <span class="card-school">{esc(row['display_name'].strip())}</span>
-        <span class="card-type">{esc(row['menutype'].strip().capitalize())}</span>
-        <span class="card-desc">Fullscreen TV display</span>
-      </a>""" for row in load_menu_list())
+        school_sections.append(f"""
+    <section class="school-panel">
+      <h2>{esc(display_name)}</h2>
+      <div class="meals">{''.join(meal_buttons)}</div>
+    </section>""")
 
     page = f"""<!DOCTYPE html>
 <html lang="en">
@@ -482,46 +491,40 @@ def build_index_page():
 <meta name="description" content="Weekly and monthly school breakfast/lunch menus for Poland Local Schools.">
 <style>
   *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0;}}
-  :root{{ --navy:#07194a; --gold:#f5a623; --white:#fff; --gray:#7a9cc6; --ink:#1a1a2e; }}
+  :root{{ --navy:#07194a; --accent:#7cd0ff; --white:#fff; --gray:#a9c2e8; --ink:#1a1a2e; }}
   body{{ font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--navy); color:var(--white);
-    min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:40px 20px 60px; }}
+    min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:48px 20px 60px; }}
   a{{ color:inherit; }}
-  a:focus-visible{{ outline:3px solid var(--gold); outline-offset:2px; }}
-  h1{{ font-size:clamp(32px,5vw,52px); letter-spacing:1px; margin-bottom:6px; }}
-  h1 span{{ color:var(--gold); }}
-  .subtitle{{ font-size:16px; color:var(--gray); margin-bottom:40px; letter-spacing:1px; text-transform:uppercase; }}
-  .section-label{{ font-size:14px; color:var(--gray); letter-spacing:2px; text-transform:uppercase;
-    margin:40px 0 16px; align-self:flex-start; max-width:900px; width:100%; }}
-  .grid{{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px; max-width:900px; width:100%; }}
-  .card{{ background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:14px;
-    padding:24px; text-decoration:none; display:flex; flex-direction:column; gap:6px;
-    transition:transform .15s, border-color .15s; }}
-  .card:hover{{ transform:translateY(-3px); border-color:var(--gold); }}
-  .card-icon{{ font-size:32px; }}
-  .card-school{{ font-size:13px; color:var(--gold); font-weight:600; letter-spacing:1px; text-transform:uppercase; }}
-  .card-type{{ font-size:20px; font-weight:600; }}
-  .card-desc{{ font-size:13px; color:var(--gray); line-height:1.4; }}
-  .pdf-card img{{ width:100%; border-radius:8px; border:1px solid rgba(255,255,255,0.2); margin-bottom:4px; }}
-  footer{{ margin-top:56px; font-size:13px; color:var(--gray); opacity:.7; text-align:center; }}
-  footer a{{ color:var(--gold); }}
+  a:focus-visible{{ outline:3px solid var(--accent); outline-offset:2px; }}
+  h1{{ font-size:clamp(32px,5vw,52px); letter-spacing:1px; margin-bottom:6px; text-align:center; }}
+  h1 span{{ color:var(--accent); }}
+  .subtitle{{ font-size:17px; color:var(--gray); margin-bottom:48px; text-align:center; max-width:32em; }}
+  .schools{{ display:flex; flex-direction:column; gap:24px; max-width:640px; width:100%; }}
+  .school-panel{{ background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:18px; padding:28px 28px 24px; }}
+  .school-panel h2{{ font-size:22px; font-weight:700; margin-bottom:18px; }}
+  .meals{{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }}
+  .meal{{ display:flex; flex-direction:column; gap:8px; }}
+  .meal-btn{{ background:var(--accent); color:var(--navy); text-decoration:none; font-weight:700; font-size:17px;
+    border-radius:12px; padding:16px 18px; display:flex; align-items:center; gap:10px; min-height:44px;
+    transition:transform .15s, background .15s; }}
+  .meal-btn:hover{{ background:#a4dfff; transform:translateY(-2px); }}
+  .meal-icon{{ font-size:24px; }}
+  .pdf-link{{ color:var(--gray); font-size:13px; text-decoration:underline; padding:.25rem 0; }}
+  .pdf-link:hover{{ color:var(--accent); }}
+  footer{{ margin-top:48px; font-size:13px; color:var(--gray); opacity:.7; text-align:center; }}
+  footer a{{ color:var(--accent); }}
 </style>
 </head>
 <body>
   <h1>Poland <span>Schools</span></h1>
-  <p class="subtitle">Menu Display System</p>
+  <p class="subtitle">Find your child&rsquo;s school below for this month&rsquo;s breakfast and lunch menu.</p>
 
-  <p class="section-label">🍽️ Menus</p>
-  <div class="grid">{''.join(feed_cards)}</div>
-
-  <p class="section-label">📄 Monthly PDF Calendars</p>
-  <div class="grid">{''.join(pdf_cards) if pdf_cards else '<p style="color:var(--gray)">PDFs are generated by the daily build — check back soon.</p>'}</div>
-
-  <p class="section-label">📺 TV Displays</p>
-  <div class="grid">{tv_cards}</div>
+  <div class="schools">{''.join(school_sections)}</div>
 
   <footer>
     Poland Local School District &middot; Menu data sourced from Nutrislice<br>
-    <a href="embed-guide/">Embedding these menus on Finalsite &rarr;</a>
+    Staff resources: <a href="embed-guide/">Embedding these menus</a> &middot;
+    <a href="tv.html">TV displays</a>
   </footer>
 </body>
 </html>
