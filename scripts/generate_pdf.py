@@ -506,6 +506,21 @@ def generate_all(labeled_months: list[tuple[str, int, int]]):
 
             out_path = PDF_DIR / f"{label}-{menutype}-{school}.pdf"
             c = canvas.Canvas(str(out_path), pagesize=landscape(letter))
+
+            # Document metadata — reportlab defaults to a blank Title, which
+            # is why PDF viewers/tabs show "Untitled" instead of anything
+            # useful. DisplayDocTitle tells the viewer to actually show that
+            # Title (some default to the filename otherwise), and Lang lets
+            # screen readers pick the right pronunciation/voice.
+            title = f"{menutype.capitalize()} Menu — {display_name} — {MONTH_NAMES[month]} {year}"
+            c.setTitle(title)
+            c.setAuthor("Poland Local School District")
+            c.setSubject(f"{menutype.capitalize()} menu calendar for {display_name}, {MONTH_NAMES[month]} {year}")
+            c.setCreator("Poland Schools Menu System")
+            c.setKeywords(f"{display_name}, {menutype}, school menu, {MONTH_NAMES[month]} {year}")
+            c.setViewerPreference("DisplayDocTitle", "true")
+            c.setCatalogEntry("Lang", "en-US")
+
             draw_page(c, data, year, month, display_name, menutype, school)
             c.showPage()
             c.save()
