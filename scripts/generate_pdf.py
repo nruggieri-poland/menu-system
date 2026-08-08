@@ -64,7 +64,7 @@ HEAD_COLORS = {
 PAGE_W, PAGE_H = landscape(letter)
 MARGIN      = 0.4 * inch
 
-HEADER_H    = 1.55 * inch  # taller than before to leave room for the banner photo strip
+HEADER_H    = 1.15 * inch
 SIDEBAR_W   = 2.55 * inch
 GAP         = 0.16 * inch
 
@@ -168,8 +168,38 @@ def draw_header(c: canvas.Canvas, school: str, menutype: str, year: int, month: 
                  banner_title: str):
     top = PAGE_H - MARGIN
     left = MARGIN
+    dx = PAGE_W - MARGIN
 
-    # School name / meal type / month
+    # Banner photo (optional) is drawn FIRST, full-bleed across the entire
+    # header band, so it sits BEHIND all the header text — matching the
+    # district's original design, where the photo fades to white on the
+    # edges (baked into the image itself) so the overlaid text stays
+    # legible. Stretched to exactly fill the header box rather than
+    # letterboxed, since these images are custom-cropped wide banners
+    # meant for exactly this full-bleed placement.
+    banner_img = load_image(ASSETS_DIR / f"{school}-menu-header.jpg") or load_image(ASSETS_DIR / f"{school}-menu-header.png")
+    if banner_img is not None:
+        try:
+            c.drawImage(banner_img, left, top - HEADER_H, width=dx - left, height=HEADER_H,
+                        preserveAspectRatio=False, mask='auto')
+
+            # Legibility scrim: these banner photos don't have a fade zone
+            # that lines up with where the text actually sits (busy mascot
+            # art can land right under the title), so wash a translucent
+            # white panel behind each text zone — image still shows through,
+            # text stays reliably readable regardless of what's under it.
+            c.saveState()
+            c.setFillColor(WHITE)
+            c.setFillAlpha(0.72)
+            c.rect(left, top - HEADER_H, (dx - left) * 0.60, HEADER_H, fill=1, stroke=0)
+            c.setFillAlpha(0.55)
+            right_zone_w = (dx - left) * 0.24
+            c.rect(dx - right_zone_w, top - HEADER_H, right_zone_w, HEADER_H, fill=1, stroke=0)
+            c.restoreState()
+        except Exception as e:
+            print(f"  ⚠ Could not draw banner image: {e}")
+
+    # School name / meal type / month (drawn on top of the banner)
     c.setFillColor(INK)
     c.setFont("Helvetica-Bold", 15)
     c.drawString(left, top - 16, banner_title)
@@ -185,50 +215,28 @@ def draw_header(c: canvas.Canvas, school: str, menutype: str, year: int, month: 
     c.setLineWidth(0.75)
     c.line(left, top - 55, left + text_w, top - 55)
 
-    # Director contact block (top-right) — logo sits above the text so the
-    # whole block stays within the same top text zone as the title on the
-    # left (roughly top-0 to top-58), leaving the row below free for the
-    # full-width banner photo with nothing else overlapping it.
-    dx = PAGE_W - MARGIN
+    # Director contact block (top-right), logo beside it — also on top of
+    # the banner, sitting over the lighter/faded right portion of the image.
     logo_img = load_image(ASSETS_DIR / "the-nutrition-group.png")
+    logo_w = logo_h = 0.42 * inch
+    text_right = dx
     if logo_img is not None:
         try:
-            logo_w, logo_h = 0.85 * inch, 0.24 * inch
-            c.drawImage(logo_img, dx - logo_w, top - 4 - logo_h, width=logo_w, height=logo_h,
+            text_right = dx - logo_w - 6
+            c.drawImage(logo_img, dx - logo_w, top - 33 - logo_h / 2, width=logo_w, height=logo_h,
                         preserveAspectRatio=True, anchor='c', mask='auto')
         except Exception as e:
             print(f"  ⚠ Could not draw logo: {e}")
 
     c.setFont("Helvetica-Bold", 7)
     c.setFillColor(INK)
-    c.drawRightString(dx, top - 34, "Food Service Director:")
+    c.drawRightString(text_right, top - 10, "Food Service Director:")
     c.setFont("Helvetica-Bold", 7.5)
-    c.drawRightString(dx, top - 43, DIRECTOR["name"])
+    c.drawRightString(text_right, top - 20, DIRECTOR["name"])
     c.setFont("Helvetica", 7)
     c.setFillColor(MUTED)
-    c.drawRightString(dx, top - 52, DIRECTOR["email"])
-    c.drawRightString(dx, top - 61, DIRECTOR["phone"])
-
-    # Banner photo strip (optional) — a full-width strip along the bottom of
-    # the header band, below all the header text so nothing overlaps it.
-    banner_img = load_image(ASSETS_DIR / f"{school}-menu-header.jpg") or load_image(ASSETS_DIR / f"{school}-menu-header.png")
-    photo_x = left
-    photo_w = PAGE_W - MARGIN - left
-    photo_top = top - 68
-    photo_bot = top - HEADER_H + 6
-    photo_h = photo_top - photo_bot
-    photo_y = photo_bot
-    if banner_img is not None and photo_w > 0 and photo_h > 0:
-        try:
-            c.saveState()
-            p = c.beginPath()
-            p.roundRect(photo_x, photo_y, photo_w, photo_h, 4)
-            c.clipPath(p, stroke=0)
-            c.drawImage(banner_img, photo_x, photo_y, width=photo_w, height=photo_h,
-                        preserveAspectRatio=True, anchor='c', mask='auto')
-            c.restoreState()
-        except Exception as e:
-            print(f"  ⚠ Could not draw banner image: {e}")
+    c.drawRightString(text_right, top - 29, DIRECTOR["email"])
+    c.drawRightString(text_right, top - 38, DIRECTOR["phone"])
 
     # Divider under the whole header band
     c.setStrokeColor(BORDER)
