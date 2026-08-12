@@ -15,8 +15,7 @@
     --navy:      #07194a;
     --navy-mid:  #0d2870;
     --navy-card: #0f2f82;
-    --gold:      #f5a623;
-    --gold-dim:  #c47d0d;
+    --accent:    #7cd0ff;
     --white:     #ffffff;
     --off-white: #d6e4ff;
     --gray:      #7a9cc6;
@@ -54,13 +53,12 @@
     font-size: 2.4rem;
     opacity: 0;
     animation: float linear infinite;
-    filter: blur(0.5px);
     user-select: none;
   }
   @keyframes float {
     0%   { transform: translateY(100vh) rotate(0deg);   opacity: 0; }
-    5%   { opacity: 0.12; }
-    95%  { opacity: 0.12; }
+    8%   { opacity: 0.38; }
+    92%  { opacity: 0.38; }
     100% { transform: translateY(-120px) rotate(360deg); opacity: 0; }
   }
 
@@ -87,18 +85,38 @@
     flex-shrink: 0;
     overflow: hidden;
     position: relative;
+    animation: headerIn 0.7s cubic-bezier(.16,1,.3,1) both;
+    animation-delay: 0.1s;
   }
 
-  /* Gold stripe accent */
+  @keyframes headerIn {
+    from { opacity: 0; transform: translateY(-30px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* Accent stripe */
   #header::before {
     content: '';
     position: absolute; left: 0; top: 0; bottom: 0;
     width: 6px;
-    background: var(--gold);
+    background: var(--accent);
     border-radius: var(--radius) 0 0 var(--radius);
   }
 
   #header-left { display: flex; flex-direction: column; gap: 4px; }
+
+  #meal-type-row { display: flex; align-items: center; gap: 20px; }
+
+  #meal-icon {
+    font-size: 64px;
+    line-height: 1;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.35));
+    animation: iconBob 3s ease-in-out infinite;
+  }
+  @keyframes iconBob {
+    0%, 100% { transform: rotate(-4deg) translateY(0); }
+    50%      { transform: rotate(4deg) translateY(-4px); }
+  }
 
   #meal-type {
     font-family: 'Bebas Neue', sans-serif;
@@ -112,7 +130,7 @@
   #school-name {
     font-size: 20px;
     font-weight: 400;
-    color: var(--gold);
+    color: var(--accent);
     letter-spacing: 1px;
   }
 
@@ -146,8 +164,8 @@
     font-family: 'Bebas Neue', sans-serif;
     font-size: 52px;
     letter-spacing: 3px;
-    color: var(--gold);
-    text-shadow: 0 0 20px rgba(245,166,35,0.4);
+    color: var(--accent);
+    text-shadow: 0 0 20px rgba(124,208,255,0.4);
   }
 
   #date-display {
@@ -187,8 +205,8 @@
   }
 
   .day-card.today {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 2px var(--gold), 0 8px 32px rgba(245,166,35,0.25);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent), 0 8px 32px rgba(124,208,255,0.25);
   }
 
   /* Day header bar */
@@ -207,7 +225,7 @@
     color: var(--white);
   }
 
-  .day-card.today .day-name { color: var(--gold); }
+  .day-card.today .day-name { color: var(--accent); }
 
   .day-date {
     font-size: 30px; font-weight: 500;
@@ -219,7 +237,7 @@
     font-size: 20px; font-weight: 600;
     letter-spacing: 1.5px;
     color: var(--navy);
-    background: var(--gold);
+    background: var(--accent);
     padding: 2px 8px;
     border-radius: 20px;
     text-transform: uppercase;
@@ -246,7 +264,7 @@
   .item-dot {
     width: 10px; height: 10px;
     border-radius: 50%;
-    background: var(--gold);
+    background: var(--accent);
     flex-shrink: 0;
     margin-top: 22px;
     opacity: 0.7;
@@ -281,7 +299,7 @@
   }
 
   #ticker-label {
-    background: var(--gold);
+    background: var(--accent);
     color: var(--navy);
     font-weight: 700;
     font-size: 13px;
@@ -300,16 +318,11 @@
   #ticker-inner {
     display: inline-flex; gap: 60px;
     white-space: nowrap;
-    animation: ticker 40s linear infinite;
     font-size: 14px;
     color: var(--off-white);
     opacity: 0.7;
     padding-left: 30px;
-  }
-
-  @keyframes ticker {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
+    will-change: transform;
   }
 
   /* ── Error state ──────────────────────────────────────────────────── */
@@ -332,22 +345,51 @@
     background: var(--navy);
     display: flex; align-items: center; justify-content: center;
     flex-direction: column; gap: 20px;
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(.5,0,.75,0);
+  }
+  #loading.exit {
+    opacity: 0;
+    transform: scale(1.15);
+    pointer-events: none;
   }
   #loading .logo {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 60px;
     letter-spacing: 6px;
     color: var(--white);
+    animation: logoPulse 1.4s ease-in-out infinite;
   }
-  #loading .logo span { color: var(--gold); }
+  #loading .logo span { color: var(--accent); }
+  @keyframes logoPulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.05); }
+  }
   .spinner {
     width: 48px; height: 48px;
     border: 4px solid rgba(255,255,255,0.1);
-    border-top-color: var(--gold);
+    border-top-color: var(--accent);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Kid-friendly welcome burst, plays once when loading finishes ──── */
+  #welcome-burst {
+    position: fixed; inset: 0; z-index: 98;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  #welcome-burst span {
+    position: absolute;
+    font-size: 3.5rem;
+    opacity: 0;
+    animation: burst 0.9s cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes burst {
+    0%   { opacity: 0; transform: translate(0,0) scale(0.3); }
+    30%  { opacity: 1; }
+    100% { opacity: 0; transform: var(--burst-end) scale(1.1); }
+  }
 </style>
 </head>
 <body>
@@ -364,6 +406,9 @@
   <p id="error-detail">Could not load menu data.</p>
 </div>
 
+<!-- One-time kid-friendly welcome burst, plays as the loading overlay exits -->
+<div id="welcome-burst"></div>
+
 <!-- Floating food emojis -->
 <div id="floaters"></div>
 
@@ -371,8 +416,13 @@
 <div id="app">
   <div id="header">
     <div id="header-left">
-      <div id="meal-type">—</div>
-      <div id="school-name">—</div>
+      <div id="meal-type-row">
+        <div id="meal-icon" aria-hidden="true">🍽️</div>
+        <div>
+          <div id="meal-type">—</div>
+          <div id="school-name">—</div>
+        </div>
+      </div>
     </div>
     <div id="header-center">
       <div id="week-label">Week of</div>
@@ -449,14 +499,14 @@ function dateKey(d) {
 
 function spawnFloaters() {
   const wrap = qs('#floaters');
-  for (let i = 0; i < 22; i++) {
+  for (let i = 0; i < 26; i++) {
     const el = document.createElement('div');
     el.className = 'floater';
     el.textContent = FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)];
     el.style.left = Math.random() * 100 + 'vw';
     el.style.animationDuration = (18 + Math.random() * 22) + 's';
     el.style.animationDelay   = -(Math.random() * 30) + 's';
-    el.style.fontSize = (1.6 + Math.random() * 2) + 'rem';
+    el.style.fontSize = (2.2 + Math.random() * 2.6) + 'rem';
     wrap.appendChild(el);
   }
 }
@@ -476,12 +526,39 @@ function startClock() {
 }
 
 // ── Ticker ────────────────────────────────────────────────────────────────
+//
+// Driven by requestAnimationFrame against elapsed real time (not a fixed
+// CSS @keyframes loop) — position is always recomputed fresh from how much
+// time has actually passed, so it can't drift or freeze the way a CSS
+// animation can on weaker TV hardware after running for hours. Even if
+// frames get dropped while the tab is backgrounded, the very next frame
+// jumps straight to the correct position instead of staying stuck.
+
+let tickerRAF = null;
 
 function buildTicker(items) {
   const msgs = [...TICKER_MSGS, ...items.slice(0,8).map(i => `Today's menu includes: ${i}`)];
-  const doubled = [...msgs, ...msgs].join('   •   ');
-  const inner = qs('#ticker-inner');
-  inner.textContent = doubled;
+  const single = msgs.join('   •   ');
+  const track = qs('#ticker-inner');
+  track.textContent = single + '   •   ' + single; // doubled for a seamless loop
+
+  const PIXELS_PER_SEC = 55;
+  const startTime = performance.now();
+  let singleWidth = track.scrollWidth / 2;
+
+  const onResize = () => { singleWidth = track.scrollWidth / 2; };
+  window.addEventListener('resize', onResize);
+
+  if (tickerRAF) cancelAnimationFrame(tickerRAF);
+  function frame(now) {
+    if (singleWidth > 0) {
+      const elapsed = (now - startTime) / 1000;
+      const offset = (elapsed * PIXELS_PER_SEC) % singleWidth;
+      track.style.transform = `translateX(${-offset}px)`;
+    }
+    tickerRAF = requestAnimationFrame(frame);
+  }
+  tickerRAF = requestAnimationFrame(frame);
 }
 
 // ── Data loading ──────────────────────────────────────────────────────────
@@ -510,6 +587,7 @@ function renderWeek(itemMap, monday, schoolDisplay, type) {
   // Header
   const friday = new Date(monday);
   friday.setDate(friday.getDate() + 4);
+  qs('#meal-icon').textContent = MEAL_ICONS[type] || '🍽️';
   qs('#meal-type').textContent = type.charAt(0).toUpperCase() + type.slice(1);
   qs('#school-name').textContent = schoolDisplay;
   qs('#week-dates').textContent  = `${fmtDate(monday)} – ${fmtDate(friday)}`;
@@ -567,8 +645,37 @@ function renderWeek(itemMap, monday, schoolDisplay, type) {
 
 const SCHOOL_NAMES = {
   'pshs':            'Poland Seminary High School',
-  'mckinley-middle': 'McKinley Middle School',
+  'mckinley-middle': 'McKinley/Middle School',
 };
+
+const MEAL_ICONS = { breakfast: '🥞', lunch: '🍕' };
+
+// ── Kid-friendly welcome burst ──────────────────────────────────────────────
+// A one-time handful of big emojis flying outward from center as the
+// loading screen dismisses — plays once per page load (i.e. once per TV
+// refresh cycle), not on every row/render.
+
+function spawnWelcomeBurst(type) {
+  const host = qs('#welcome-burst');
+  const emojis = [MEAL_ICONS[type] || '🍽️', ...FOOD_EMOJIS.slice(0, 7)];
+  emojis.forEach((emoji, i) => {
+    const el = document.createElement('span');
+    el.textContent = emoji;
+    const angle = (i / emojis.length) * Math.PI * 2;
+    const dist = 260 + Math.random() * 160;
+    el.style.setProperty('--burst-end', `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px)`);
+    el.style.animationDelay = (i * 0.03) + 's';
+    host.appendChild(el);
+  });
+  setTimeout(() => { host.innerHTML = ''; }, 1200);
+}
+
+function dismissLoading(type) {
+  const loading = qs('#loading');
+  loading.classList.add('exit');
+  spawnWelcomeBurst(type);
+  setTimeout(() => { loading.style.display = 'none'; }, 550);
+}
 
 // ── Boot ──────────────────────────────────────────────────────────────────
 
@@ -599,7 +706,7 @@ async function boot() {
 
   renderWeek(itemMap, monday, schoolDisplay, type);
 
-  qs('#loading').style.display = 'none';
+  dismissLoading(type);
 
   // Auto-refresh at midnight to flip to next week
   const msUntilMidnight = new Date().setHours(24,0,5,0) - Date.now();
