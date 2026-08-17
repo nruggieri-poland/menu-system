@@ -2,7 +2,7 @@
   "school": "mckinley-middle",
   "display_name": "McKinley/Middle School",
   "menutype": "lunch",
-  "generated_at": "2026-08-13T11:45:33.882221Z",
+  "generated_at": "2026-08-17T11:24:42.593092Z",
   "days": [
     {
       "date": "2026-08-25",
@@ -48,8 +48,8 @@
       "date": "2026-08-31",
       "items": [
         "Bosco Sticks w/Dipping Sauce",
-        "Fresh Baby Carrots",
         "Seasoned Steamed Green Beans",
+        "Fresh Baby Carrots",
         "Birthday Cake Applesauce",
         "Cheeseburger on a Bun"
       ]
@@ -58,8 +58,8 @@
       "date": "2026-09-01",
       "items": [
         "Walking Taco with Beef, Cheese, Nacho Doritos & Fresh Bread",
-        "Creamy Cucumber Salad",
         "Seasoned Refried Beans",
+        "Creamy Cucumber Salad",
         "Tropical Pineapple Tidbits",
         "Chicken Nuggets with Fresh Bread"
       ]
@@ -98,8 +98,8 @@
       "date": "2026-09-11",
       "items": [
         "Cheese Pizza",
-        "Fresh Baby Carrots",
         "Seasoned Steamed Broccoli",
+        "Fresh Baby Carrots",
         "Applesauce",
         "Corn Dog Nuggets"
       ]
@@ -108,8 +108,8 @@
       "date": "2026-09-14",
       "items": [
         "Teriyaki Chicken & Vegetables over Fluffy Rice",
-        "Fresh Baby Carrots",
         "Seasoned Steamed Mixed Vegetables",
+        "Fresh Baby Carrots",
         "Cinnamon Applesauce",
         "Breaded Chicken Sandwich"
       ]
@@ -118,8 +118,8 @@
       "date": "2026-09-15",
       "items": [
         "Sloppy Nachos",
-        "Fresh Cucumber Slices",
         "Seasoned Refried Beans",
+        "Fresh Cucumber Slices",
         "Tropical Pineapple Tidbits",
         "Popcorn Smackers"
       ]
@@ -128,8 +128,8 @@
       "date": "2026-09-16",
       "items": [
         "Meatball Hoagie",
-        "Fresh Cucumber Slices",
         "Seasoned Steamed Green Beans",
+        "Fresh Cucumber Slices",
         "Golden Delicious Apple",
         "Corn Dog Nuggets"
       ]
@@ -188,8 +188,8 @@
       "date": "2026-09-24",
       "items": [
         "Bacon Cheeseburger",
-        "Fresh Baby Carrots",
         "Baked French Fries",
+        "Fresh Baby Carrots",
         "Blue Raspberry Applesauce",
         "Breaded Chicken Sandwich"
       ]
