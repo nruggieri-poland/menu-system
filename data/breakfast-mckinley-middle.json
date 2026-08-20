@@ -2,7 +2,7 @@
   "school": "mckinley-middle",
   "display_name": "McKinley/Middle School",
   "menutype": "breakfast",
-  "generated_at": "2026-08-17T11:24:30.112690Z",
+  "generated_at": "2026-08-20T11:25:28.275091Z",
   "days": [
     {
       "date": "2026-08-25",
@@ -40,8 +40,8 @@
       "date": "2026-08-31",
       "items": [
         "Egg & Cheese Biscuit",
-        "Sunrise Orange Juice",
-        "Golden Delicious Apple"
+        "Golden Delicious Apple",
+        "Sunrise Orange Juice"
       ]
     },
     {

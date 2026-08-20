@@ -2,7 +2,7 @@
   "school": "mckinley-middle",
   "display_name": "McKinley/Middle School",
   "menutype": "lunch",
-  "generated_at": "2026-08-17T11:24:42.593092Z",
+  "generated_at": "2026-08-20T11:25:44.377323Z",
   "days": [
     {
       "date": "2026-08-25",
@@ -48,8 +48,8 @@
       "date": "2026-08-31",
       "items": [
         "Bosco Sticks w/Dipping Sauce",
-        "Seasoned Steamed Green Beans",
         "Fresh Baby Carrots",
+        "Seasoned Steamed Green Beans",
         "Birthday Cake Applesauce",
         "Cheeseburger on a Bun"
       ]
@@ -58,8 +58,8 @@
       "date": "2026-09-01",
       "items": [
         "Walking Taco with Beef, Cheese, Nacho Doritos & Fresh Bread",
-        "Seasoned Refried Beans",
         "Creamy Cucumber Salad",
+        "Seasoned Refried Beans",
         "Tropical Pineapple Tidbits",
         "Chicken Nuggets with Fresh Bread"
       ]

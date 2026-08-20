@@ -2,7 +2,7 @@
   "school": "pshs",
   "display_name": "Poland Seminary High School",
   "menutype": "lunch",
-  "generated_at": "2026-08-17T11:24:17.562478Z",
+  "generated_at": "2026-08-20T11:25:12.525779Z",
   "days": [
     {
       "date": "2026-08-25",
@@ -52,10 +52,10 @@
       "date": "2026-08-31",
       "items": [
         "Bosco Sticks w/Dipping Sauce",
-        "Fresh Red and Green Peppers",
         "Seasoned Steamed Mixed Vegetables",
-        "Cinnamon Applesauce",
+        "Fresh Red and Green Peppers",
         "Fresh Petite Banana",
+        "Cinnamon Applesauce",
         "Crispy Spicy Chicken Patty Sandwich"
       ]
     },
@@ -65,8 +65,8 @@
         "Walking Taco",
         "Creamy Cucumber Salad",
         "Seasoned Refried Beans",
-        "Red Delicious Apple",
         "Citrusy Mandarin Oranges",
+        "Red Delicious Apple",
         "Corn Dog"
       ]
     },
