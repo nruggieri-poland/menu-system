@@ -2,7 +2,7 @@
   "school": "pshs",
   "display_name": "Poland Seminary High School",
   "menutype": "lunch",
-  "generated_at": "2026-08-20T11:25:12.525779Z",
+  "generated_at": "2026-08-24T11:27:08.903072Z",
   "days": [
     {
       "date": "2026-08-25",
@@ -74,10 +74,10 @@
       "date": "2026-09-08",
       "items": [
         "Cheese Quesadilla w/ Salsa",
-        "Seasoned Refried Beans",
         "Fresh Baby Carrots",
-        "Fresh Petite Banana",
+        "Seasoned Refried Beans",
         "Red Delicious Apple",
+        "Fresh Petite Banana",
         "Crispy Spicy Chicken Patty Sandwich"
       ]
     },
@@ -87,8 +87,8 @@
         "Chicken and Vegetable Dumplings with Ginger Dressing and Fried Rice",
         "Seasoned Steamed Mixed Vegetables",
         "Fresh Red and Green Peppers",
-        "Golden Delicious Apple",
         "Citrusy Mandarin Oranges",
+        "Golden Delicious Apple",
         "Cheese Pizza"
       ]
     },
@@ -107,10 +107,10 @@
       "date": "2026-09-11",
       "items": [
         "Buffalo Chicken Pizza",
-        "Seasoned Steamed Green Beans",
         "Fresh Baby Carrots",
-        "Tropical Pineapple Tidbits",
+        "Seasoned Steamed Green Beans",
         "Golden Delicious Apple",
+        "Tropical Pineapple Tidbits",
         "Grilled Cheese"
       ]
     },
@@ -120,8 +120,8 @@
         "Buffalo Chicken Dipper w/ Garlic Toast",
         "Fresh Baby Carrots",
         "Seasoned Steamed Mixed Vegetables",
-        "Cinnamon Applesauce",
         "Red Delicious Apple",
+        "Cinnamon Applesauce",
         "Cheeseburger on a Bun"
       ]
     },
@@ -140,10 +140,10 @@
       "date": "2026-09-16",
       "items": [
         "Chicken w/ Gravy and Biscuit Potato Bowl",
-        "Seasoned Steamed Golden Corn",
         "Fresh Baby Carrots",
-        "Applesauce",
+        "Seasoned Steamed Golden Corn",
         "Red Delicious Apple",
+        "Applesauce",
         "Crispy Spicy Chicken Patty Sandwich"
       ]
     },
@@ -151,8 +151,8 @@
       "date": "2026-09-17",
       "items": [
         "Bosco Sticks w/Dipping Sauce",
-        "Honey Glazed Carrots",
         "Fresh Cucumber Slices",
+        "Honey Glazed Carrots",
         "Golden Delicious Apple",
         "Tropical Pineapple Tidbits",
         "Breaded Chicken Sandwich"
@@ -164,8 +164,8 @@
         "Chicken BBQ Pizza",
         "Fresh Red and Green Peppers",
         "Green Beans",
-        "Strawberry Applesauce",
         "Fresh Petite Banana",
+        "Strawberry Applesauce",
         "Crispy Spicy Chicken Patty Sandwich"
       ]
     },
@@ -173,8 +173,8 @@
       "date": "2026-09-21",
       "items": [
         "Chicken Parmesan Sandwich",
-        "Cucumbers",
         "Oven Roasted Carrots",
+        "Cucumbers",
         "Fresh Petite Banana",
         "Cinnamon Applesauce",
         "Popcorn Smackers"
@@ -186,8 +186,8 @@
         "Chicken Fajita & Cheese Dip w/Fresh Bread",
         "Fresh Celery Sticks",
         "Seasoned Refried Beans",
-        "Golden Delicious Apple",
         "Citrusy Mandarin Oranges",
+        "Golden Delicious Apple",
         "Corn Dog Nuggets"
       ]
     },
@@ -195,8 +195,8 @@
       "date": "2026-09-23",
       "items": [
         "Chicken Meatballs & Penne Pasta w/Fresh Bread",
-        "Seasoned Steamed Green Beans",
         "Fresh Baby Carrots",
+        "Seasoned Steamed Green Beans",
         "Golden Delicious Apple",
         "Applesauce",
         "Chicken Nuggets"
@@ -230,8 +230,8 @@
         "French Toast Sticks w/ 2 Sausage Patties",
         "Crispy Tater Tots",
         "Fresh Baby Carrots",
-        "Cinnamon Applesauce",
         "Red Delicious Apple",
+        "Cinnamon Applesauce",
         "Corn Dog Nuggets"
       ]
     },
@@ -250,10 +250,10 @@
       "date": "2026-09-30",
       "items": [
         "Bacon Cheeseburger",
-        "BBQ Bacon Baked Beans",
         "Fresh Baby Carrots",
-        "Strawberry Applesauce",
+        "BBQ Bacon Baked Beans",
         "Fresh Petite Banana",
+        "Strawberry Applesauce",
         "Crispy Spicy Chicken Patty Sandwich"
       ]
     }
