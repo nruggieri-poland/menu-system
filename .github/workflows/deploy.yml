@@ -1,0 +1,73 @@
+name: Deploy Site
+
+# Manual-only: rebuilds site/ from the current repo state (assets/, scripts/,
+# and the already-committed data/ rollups) and republishes to GitHub Pages,
+# without re-fetching menu data from the district. Use this after editing
+# something under assets/ (e.g. tv.html) or the site-generation scripts when
+# you don't want to wait for build-deploy.yml's schedule or trigger a fetch.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install poppler + font (PDF -> image rendering for preview cards)
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils fonts-dejavu-core
+
+      - name: Install Python dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Generate PDF calendars
+        run: |
+          cd scripts
+          python generate_pdf.py
+
+      - name: Generate PDF preview thumbnails
+        run: |
+          cd scripts
+          python generate_thumbnails.py
+
+      - name: Build site (accessible pages, calendars, embed guide, Finalsite embeds)
+        run: |
+          cd scripts
+          python build_site.py
+          python build_pages.py
+          python build_finalsite_embeds.py
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "site/"
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
